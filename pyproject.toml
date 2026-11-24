@@ -1,0 +1,30 @@
+[project]
+name = "revisar"
+version = "0.1.0"
+description = "Qué pagos revisar: cola diaria de revisión de fraude con un cupo fijo"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy==1.26.4",
+    "pandas==2.2.2",
+    "pyarrow==16.1.0",
+    "scikit-learn==1.7.2",
+    "xgboost==2.1.1",
+    "matplotlib==3.9.2",
+    "joblib==1.4.2",
+]
+
+[project.optional-dependencies]
+# Cuaderno ejecutado (scripts/08_cuaderno.py) y reporte (scripts/09_reporte.py)
+entregables = [
+    "nbformat==5.11.1",
+    "nbclient==0.11.0",
+    "ipykernel==7.4.0",
+    "markdown==3.11.3",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

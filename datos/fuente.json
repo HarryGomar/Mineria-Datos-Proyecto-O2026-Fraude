@@ -1,0 +1,9 @@
+{
+  "conjunto": "IEEE-CIS Fraud Detection (Vesta), archivo de entrenamiento unido (transacciones + identidad)",
+  "copia": "OpenML 46858",
+  "pagina": "https://www.openml.org/d/46858",
+  "url": "https://data.openml.org/datasets/0004/46858/dataset_46858.pq",
+  "competencia": "https://www.kaggle.com/competitions/ieee-fraud-detection",
+  "sha256": "c313ad335223589693e26d5808267ed6ff03d871be5d9bb63deb3b847fa4b891",
+  "bytes": 78250805
+}

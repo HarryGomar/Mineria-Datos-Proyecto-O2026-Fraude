@@ -1,0 +1,21 @@
+</main>
+<nav class="controls" aria-label="Controles">
+  <button id="anterior" aria-label="Anterior" title="Anterior (←)">←</button>
+  <button id="vista" aria-label="Vista general" title="Vista general (O)">Vista general</button>
+  <button id="notas" aria-label="Notas del orador" aria-pressed="false" title="Notas (N)">Notas</button>
+  <button id="completa" aria-label="Pantalla completa" title="Pantalla completa (F)">Pantalla completa</button>
+  <button id="siguiente" aria-label="Siguiente" title="Siguiente (→)">→</button>
+</nav>
+<p id="estado" class="visually-hidden" aria-live="polite"></p>
+<aside class="speaker-notes" id="texto-notas" aria-label="Notas del orador" hidden></aside>
+<dialog class="overview" aria-labelledby="titulo-vista">
+  <header>
+    <h2 id="titulo-vista">Diapositivas</h2>
+    <button id="cerrar-vista" aria-label="Cerrar vista general">×</button>
+  </header>
+  <div class="overview-grid"></div>
+</dialog>
+<script type="application/json" id="datos-notas">@@notas@@</script>
+<script>@@navegacion@@</script>
+</body>
+</html>

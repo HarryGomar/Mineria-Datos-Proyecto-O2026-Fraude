@@ -1,0 +1,114 @@
+{
+ "universo": {
+  "pagos": 414542,
+  "dias": 120,
+  "primer_dia": 1,
+  "ultimo_dia": 120,
+  "pagos_por_dia_mediana": 3179.5,
+  "tasa_fraude": 0.035219591742211884,
+  "usd_total": 55839002.50199999,
+  "usd_fraude": 2133835.0720000006,
+  "parte_usd_fraude": 0.03821406143355754,
+  "usd_fraude_por_dia_mediana": 16979.572,
+  "monto_mediano_fraude": 76.023,
+  "monto_mediano_legitimo": 68.95,
+  "cupo_60_parte_pagos": 0.018870891649630444
+ },
+ "concentracion": {
+  "top_1pct_pagos_por_monto": 0.08023643544274822,
+  "top_5pct_pagos_por_monto": 0.3614094974440459,
+  "top_10pct_pagos_por_monto": 0.5266315085667482,
+  "top_1pct_fraudes_por_monto": 0.10250429982622383
+ },
+ "producto": {
+  "C": {
+   "pagos": 50136,
+   "tasa": 0.112035,
+   "usd_fraude": 267495.262,
+   "parte_pagos": 0.120943,
+   "parte_usd_fraude": 0.125359
+  },
+  "H": {
+   "pagos": 28134,
+   "tasa": 0.045177,
+   "usd_fraude": 205611.0,
+   "parte_pagos": 0.067868,
+   "parte_usd_fraude": 0.096357
+  },
+  "R": {
+   "pagos": 30185,
+   "tasa": 0.035216,
+   "usd_fraude": 255500.0,
+   "parte_pagos": 0.072815,
+   "parte_usd_fraude": 0.119737
+  },
+  "S": {
+   "pagos": 7214,
+   "tasa": 0.060438,
+   "usd_fraude": 32647.0,
+   "parte_pagos": 0.017402,
+   "parte_usd_fraude": 0.0153
+  },
+  "W": {
+   "pagos": 298873,
+   "tasa": 0.020788,
+   "usd_fraude": 1372581.81,
+   "parte_pagos": 0.720972,
+   "parte_usd_fraude": 0.643246
+  }
+ },
+ "cliente": {
+  "clientes": 164985,
+  "tarjetas_card1": 12251,
+  "tasa_por_pagos_previos": {
+   "0": {
+    "tasa": 0.02640096003491036,
+    "pagos": 164994
+   },
+   "1-2": {
+    "tasa": 0.032961511405888856,
+    "pagos": 109461
+   },
+   "3-9": {
+    "tasa": 0.040502419437866775,
+    "pagos": 97130
+   },
+   "10+": {
+    "tasa": 0.06290010941173732,
+    "pagos": 42957
+   }
+  },
+  "tasa_por_tiempo_desde_anterior": {
+   "< 1 h": {
+    "tasa": 0.06828874848769996,
+    "pagos": 66951
+   },
+   "1-24 h": {
+    "tasa": 0.053492795998168176,
+    "pagos": 56774
+   },
+   "1-7 días": {
+    "tasa": 0.03517226801944621,
+    "pagos": 47310
+   },
+   "> 7 días": {
+    "tasa": 0.012367378650669315,
+    "pagos": 78513
+   },
+   "primero": {
+    "tasa": 0.02640096003491036,
+    "pagos": 164994
+   }
+  },
+  "fraudes_en_clientes_con_2_o_mas": 0.7742465753424658,
+  "clientes_con_fraude_todo_fraude": 0.6180140146983422
+ },
+ "faltantes": {
+  "D1": 0.0006609704203675382,
+  "dist1": 0.6184898032045004,
+  "id_01": 0.7344056814508542,
+  "addr1": 0.1149244226158025,
+  "P_emaildomain": 0.15550655904588678,
+  "DeviceType": 0.7404895040792007
+ }
+}

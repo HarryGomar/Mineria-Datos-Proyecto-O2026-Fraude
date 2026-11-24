@@ -1,0 +1,15 @@
+# Entorno
+.venv/
+__pycache__/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Rutas locales y datos (se descargan con scripts/00_descargar.py)
+config_local.json
+datos/crudos/
+datos/procesados/
+*.parquet
+*.parcial
+
+# Corridas rápidas de prueba de los scripts 06 y 07
+resultados/*_rapido.json
