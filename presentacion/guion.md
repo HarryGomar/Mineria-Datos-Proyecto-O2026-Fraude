@@ -1,291 +1,202 @@
 # Guion: Qué pagos revisar
 
-Veintiséis láminas para 14 a 15 minutos y veintidós de apéndice para preguntas. Cada bloque indica qué se ve y qué se dice.
+Quince láminas para 12 a 14 minutos, alrededor de un minuto cada una, y dieciocho de apéndice para preguntas. Cada
+lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indica qué se ve y qué se dice.
 
 ## 1 · Qué pagos revisar
 
-**Ver.** Portada: los pagos de un día en orden de llegada; en azul, los 60 que selecciona el modelo; en naranja, los fraudes no revisados.
+**Ver.** Portada: los 2,931 pagos de un día en orden de llegada; en azul, los 60 que manda a revisión el modelo; en naranja, los fraudes que no se revisan.
 
-**Decir.** La imagen muestra un día de pagos con tarjeta en línea: 2,931 pagos, cada uno con un tamaño proporcional a su monto. El equipo de riesgo puede revisar 60 al día. En azul están los que selecciona el modelo y en naranja los fraudes que no se revisaron. La pregunta del proyecto es qué 60 pagos conviene revisar cada día para detener la mayor cantidad posible de fraude en dólares.
+**Decir.** Cada cuadro es un pago de un solo día, del tamaño de su monto. El equipo de riesgo puede revisar a mano 60 al día, uno de cada cincuenta. Un fraude revisado se detiene antes del contracargo; uno que no se revisa se pierde completo. La pregunta del proyecto es una sola: qué 60 pagos revisar cada día para detener la mayor cantidad posible de fraude en dólares.
 
-## 2 · El modelo lleva a revisión 137 mil USD más de fraude
+## 2 · Con las mismas 60 revisiones al día, el modelo atrapa 45% más fraude
 
-**Ver.** Marcas de 5 mil USD para la mejor regla y el modelo en cada mes de prueba.
+**Ver.** Tres barras sobre el máximo posible con el mismo cupo: la mejor regla, la logística y el modelo, en los dos meses de prueba.
 
-**Decir.** Cada marca equivale a 5 mil dólares de fraude dentro de la cola. En el primer mes de prueba, la mejor regla captura 163 mil dólares y el modelo 211 mil, 30% más. En el segundo, 139 mil contra 227 mil, 63% más. En total son 137 mil dólares adicionales con el mismo número de revisiones, y las tres hipótesis fijadas antes de la prueba se cumplen en ambos meses.
+**Decir.** Este es el resultado. En dos meses que nadie tocó hasta el final, la mejor regla, que representa la práctica actual, atrapa 301 mil dólares de fraude. Una logística regularizada con la misma información atrapa 372 mil. El modelo atrapa 438 mil: 137 mil dólares más que la regla, 45% más, con exactamente las mismas revisiones. La barra completa es lo que atraparía alguien que conoce las etiquetas: el modelo llega a la mitad de ese techo y la regla a un tercio. Gana en cada uno de los dos meses, contra la regla y contra la logística, y los cuatro intervalos de 95% quedan sobre cero. El resto de la charla explica cómo llegamos aquí y por qué el resultado es creíble.
 
-## 3 · Qué 60 pagos revisar cada día
+## 3 · La decisión: qué 60 pagos revisar cada día
 
-**Ver.** Un día de prueba: cada pago según su probabilidad estimada y su monto; los 60 revisados quedan sobre la diagonal.
+**Ver.** Un día de la prueba: cada pago según su probabilidad estimada y su monto; los 60 revisados quedan arriba de la diagonal.
 
-**Decir.** Al cierre de cada día, el equipo de riesgo tiene alrededor de 3 mil pagos autorizados y puede enviar 60 a revisión manual, menos del 2%. Un fraude revisado se detiene antes del contracargo; uno no revisado se pierde completo. En la gráfica, el eje horizontal es la probabilidad de fraude y el vertical el monto. Se revisan los 60 pagos con mayor fraude esperado, probabilidad por monto, y por eso la frontera es una diagonal. El umbral no se fija de antemano: lo determina el cupo.
+**Decir.** Primera fase, el negocio. Quién decide: el equipo de riesgo del procesador. Cuándo: al cierre del día, sobre pagos ya autorizados, con lo que se sabe hasta ese momento. Las opciones son dos: revisar o dejar pasar. El recurso escaso es el cupo de 60 revisiones. En la gráfica, el eje horizontal es la probabilidad de fraude y el vertical el monto. Se revisan los 60 pagos con mayor fraude esperado, probabilidad por monto, y por eso la frontera es una diagonal: un pago caro entra con menos probabilidad que uno barato. El umbral no se fija de antemano; lo fija el cupo.
 
-## 4 · Matriz de confusión en dólares
+## 4 · Un error no cuesta lo mismo en cada pago: la matriz se mide en dólares
 
-**Ver.** Matriz de confusión del segundo mes de prueba, en dólares, de la mejor regla al modelo.
+**Ver.** Matriz de confusión del segundo mes de prueba, de la mejor regla al modelo, con dólares en las celdas de fraude.
 
-**Decir.** Con un cupo fijo, la matriz de confusión puede leerse en dólares. El fraude dentro de la cola pasa de 139 mil a 227 mil dólares, y el fraude no revisado baja de 339 mil a 251 mil. Como el número de revisiones es el mismo, cada revisión asignada a un pago legítimo o a un fraude pequeño deja fuera un fraude más grande. Por eso la métrica del proyecto es una sola celda: dólares de fraude dentro de la cola.
+**Decir.** La matriz de confusión del curso cuenta aciertos y errores. Aquí un error no cuesta lo mismo en cada pago: dejar pasar un fraude de mil dólares no es igual que dejar pasar uno de diez. Por eso la matriz se lee en dólares. En el segundo mes, el fraude atrapado pasa de 139 mil a 227 mil dólares y el que se escapa baja de 339 mil a 251 mil. La regla del curso dice revisar si la probabilidad supera el costo entre el valor en riesgo. Aquí el valor en riesgo es el monto, así que la regla queda probabilidad por monto mayor que el costo. De ahí sale el orden de la cola.
 
-## 5 · Los dos últimos meses se reservan para la prueba
-
-**Ver.** Fraude diario en dólares, días 1 a 182, según su uso: entrenamiento, desarrollo y prueba.
-
-**Decir.** Los datos son los de la competencia IEEE-CIS de Vesta: 590 mil pagos en seis meses, de una copia pública verificada, en orden temporal. Los primeros 60 días solo entrenan; los días 61 a 120 son el desarrollo, donde se tomaron todas las decisiones; los dos últimos meses son la prueba, evaluada una sola vez con el protocolo congelado. Entre entrenamiento y evaluación hay 30 días de margen por el retraso de la etiqueta.
-
-## 6 · El fraude se concentra en los montos altos
+## 5 · El 10% de los pagos más caros concentra 53% del fraude en dólares
 
 **Ver.** Parte de los dólares de fraude por decil de monto y, debajo, la tasa de fraude de cada decil.
 
-**Decir.** Solo 3.5% de los pagos es fraude, y la mediana del monto es parecida en ambas clases: 76 dólares en fraudes y 69 en legítimos. Sin embargo, el 10% de pagos de mayor monto concentra 53% del fraude en dólares. Ordenar solo por probabilidad llenaría la cola de fraudes pequeños; por eso todas las políticas ordenan por probabilidad por monto.
+**Decir.** Segunda fase, los datos. Son los de la competencia IEEE-CIS de Vesta: 590 mil pagos en 182 días, de una copia pública con huella verificada. Solo 3.5% de los pagos es fraude, uno de cada 28. El dato clave es dónde está el dinero: el 10% de los pagos más caros concentra 53% del fraude en dólares. Un modelo que solo cuente fraudes llenaría la cola de fraudes baratos. El monto tiene que entrar al orden.
 
-## 7 · Preparación de datos sin información futura
-
-**Ver.** El historial de un cliente visto desde el pago de hoy y, a la derecha, las cinco medidas que se calculan con él.
-
-**Decir.** Los pagos se ordenan por segundo y se definen cinco llaves: cuatro de tarjeta y una de cliente. Para cada llave se calculan cinco medidas: pagos previos, pagos del último día y de la última semana, tiempo desde el pago anterior y desviación del monto respecto de su promedio. En el ejemplo llega un pago de 120 dólares de un cliente que pagó hace 43 minutos y suele gastar 35, una razón de 3.4. Todas las medidas usan solo segundos anteriores y ninguna etiqueta, y cada transformación se ajusta solo con el entrenamiento de su bloque.
-
-## 8 · Reconstrucción del identificador de cliente
+## 6 · Una señal que no viene en los datos: reconstruimos al cliente
 
 **Ver.** Tasa de fraude según el tiempo desde el pago anterior del mismo cliente.
 
-**Decir.** Vesta anonimizó los datos, pero la columna D1 registra los días desde el alta de la tarjeta. Al restarla del día del pago se obtiene una fecha de alta fija. Tarjeta, dirección y fecha de alta identifican unos 165 mil clientes, en lugar de 12 mil tarjetas. Si el mismo cliente pagó hace menos de una hora, 6.8% de los pagos es fraude; si pagó hace más de una semana, 1.2%.
+**Decir.** Tercera fase, la preparación. Vesta anonimizó los datos y no trae un identificador de cliente. Pero la columna D1 cuenta los días desde el alta de la tarjeta; al restarla del día del pago sale una fecha de alta fija. Tarjeta, dirección y fecha de alta identifican al cliente. Con eso medimos su historial: cuántos pagos previos, cuánto tiempo desde el anterior, cuánto se desvía el monto. Si el mismo cliente pagó hace menos de una hora, 6.8% de los pagos es fraude, el doble del promedio. Todas las medidas usan solo pagos anteriores y ninguna etiqueta, para que no entre información del futuro. Con este historial, el mismo modelo atrapa 21 mil dólares más en desarrollo.
 
-## 9 · El historial del cliente agrega 21 mil USD en desarrollo
+## 7 · Se elige con el pasado y se prueba una sola vez con el futuro
 
-**Ver.** Dólares en desarrollo de XGBoost al agregar conjuntos de variables; los rombos verdes corresponden a la logística.
+**Ver.** Fraude diario en dólares, días 1 a 182, coloreado según su uso: entrenamiento, desarrollo y prueba.
 
-**Decir.** Con el mismo XGBoost se mide el aporte de cada conjunto de variables. El historial por tarjeta agrega poco; el del cliente agrega 21 mil dólares en desarrollo. Las columnas opacas de Vesta agregarían 71 mil más, pero no se sabe en qué momento se calculan, y una variable que podría contener información futura no es defendible en producción. Se excluyeron antes de la prueba y la decisión quedó registrada en el protocolo.
+**Decir.** Cuarta fase, el modelado, empieza por el diseño de la prueba. La partición es por tiempo, no al azar, porque en producción siempre se predice el futuro con el pasado y el fraude cambia de un mes a otro. Los días 1 a 60 solo entrenan. Los días 61 a 120 son el desarrollo: ahí se eligieron modelo, variables, reglas y comparadores. Los dos últimos meses se congelaron con un protocolo y huellas SHA-256 antes de abrirlos, y se leyeron una sola vez. Entre entrenar y evaluar hay 30 días de margen, porque el contracargo tarda en llegar.
 
-## 10 · En desarrollo, el mejor modelo es XGBoost con F3
+## 8 · Un árbol solo no supera a la regla; el bosque y el boosting sí
 
-**Ver.** Dólares de fraude en la cola por política, días 61 a 120.
+**Ver.** Dólares en desarrollo de la mejor regla, el árbol, el bosque y XGBoost; línea punteada, la logística; en gris, los demás modelos.
 
-**Decir.** En desarrollo compitieron seis reglas de tasa histórica por monto, que representan la práctica actual, una logística regularizada con la misma información y siete modelos flexibles, todos con hiperparámetros fijos. El criterio se fijó antes: el modelo flexible con más dólares, siempre que superara a la logística en cada bloque. El elegido fue XGBoost con F3. En el segundo bloque superó a la logística por solo 3.9%, y eso se registró como riesgo, porque la hipótesis 2 pedía 10%.
+**Decir.** Con las mismas 93 variables y el mismo cupo, recorrimos los modelos del curso. Un solo árbol de decisión atrapa 243 mil dólares, menos que la mejor regla, con 275 mil; aun con menos variables apenas la iguala. Un árbol solo tiene demasiada varianza. El bosque aleatorio promedia muchos árboles y sube a 398 mil, al nivel de la logística. XGBoost agrega árboles que corrigen los errores de los anteriores y llega a 448 mil. La red neuronal y el bosque de aislamiento quedan muy atrás; el ensamble empata con XGBoost sin mejorarlo. El criterio se fijó antes de comparar: gana el flexible con más dólares, siempre que supere a la logística en cada bloque. XGBoost lo cumple.
 
-## 11 · La prueba confirma el orden del desarrollo
+## 9 · Las tres hipótesis fijadas antes de la prueba se cumplen en los dos meses
 
-**Ver.** Dólares de fraude por política en los dos meses de prueba; la barra gris es lo que capturaría un oráculo.
+**Ver.** Ventaja del modelo con intervalos de 95% contra la regla, la logística y el orden por probabilidad, en cada mes de prueba; en naranja, la barra fijada antes.
 
-**Decir.** Con todo congelado, la prueba se corrió una vez. El orden se mantiene en ambos meses: primero el modelo, después la logística y luego la mejor regla; ordenar solo por probabilidad o solo por monto queda muy por debajo. Un oráculo que conociera las etiquetas capturaría unos 435 mil dólares al mes con el mismo cupo. El modelo alcanza 49 y 52% de ese máximo; la regla, 38 y 32%.
+**Decir.** Quinta fase, la evaluación. Antes de abrir la prueba registramos tres hipótesis con su barra. Contra la mejor regla, al menos 20%: el modelo gana 30% y 63%. Contra la logística, al menos 10%: gana 13% y 22%. Contra el enfoque de la competencia, que ordena solo por probabilidad, cualquier mejora: gana 110% y 75%. Los intervalos salen de un bootstrap que remuestrea días completos, con las mismas réplicas para todas las políticas. Las tres hipótesis se cumplen en los dos meses.
 
-## 12 · Las tres hipótesis se cumplen en los dos meses
+## 10 · Seis métricas de clasificación eligen otra cola; solo el dinero elige el modelo
 
-**Ver.** Ventaja del modelo contra cada comparador con intervalos de 95%, un punto por mes; las líneas naranjas son las barras fijadas antes.
+**Ver.** Exactitud, precisión, recall, F1, ROC-AUC, PR-AUC y dólares de cada cola con el mismo cupo; en tono, la ganadora de cada fila.
 
-**Decir.** Cada intervalo proviene de mil réplicas bootstrap que remuestrean días, las mismas para todas las políticas. Contra la regla, la barra era 20% y el modelo obtiene 30 y 63%, con intervalos por encima de cero. Contra la logística, la barra era 10% y obtiene 13 y 22%, también con límite inferior positivo; es la comparación más exigente porque usa la misma información. Contra ordenar solo por probabilidad, la ventaja es de 110 y 75%. El ensamble queda empatado, así que su complejidad no se justifica.
+**Decir.** Esta lámina es la lección central del curso aplicada al caso. No revisar nada tiene 96.6% de exactitud, más que cualquier cola: es la paradoja de la exactitud con un fraude de cada 28 pagos. Ordenar solo por probabilidad gana en cinco de las seis métricas de clasificación, incluido el AUC. Pero lleva 231 mil dólares a la cola, contra 438 mil del modelo. Esas métricas cuentan aciertos; no pesan el monto. Si la decisión se mide en dinero, la métrica de selección tiene que ser dinero.
 
-## 13 · Seis métricas de clasificación prefieren otra cola
+## 11 · Revisar 2.1% de los pagos captura 46% del fraude en dólares
 
-**Ver.** Tabla de la prueba con 60 revisiones por día: exactitud, precisión, recall, F1, ROC-AUC, PR-AUC y dólares de cinco colas; el tono marca la mejor de cada fila.
+**Ver.** Curva de ganancia acumulada: parte del fraude capturado según la parte de los pagos revisados, en dólares y en número.
 
-**Decir.** Esta tabla aplica las métricas del capítulo 4 del curso. No revisar ningún pago da 96.6% de exactitud, más que cualquier cola, porque solo 3.4% de los pagos es fraude. Las otras cinco métricas favorecen ordenar solo por probabilidad, que lleva 231 mil dólares a la cola; el modelo lleva 438 mil. Estas métricas cuentan aciertos sin ponderar el monto, mientras que la decisión se mide en dólares.
+**Decir.** La curva de ganancia ordena los pagos de cada día por el modelo. Con el cupo de 60, que es 2.1% de los pagos, se captura 46% del fraude en dólares. Revisar al azar capturaría 2.1%: el lift en dólares es de 22 veces. La línea punteada muestra el número de fraudes, que crece más despacio: el modelo prioriza los fraudes caros. Para atrapar los mismos dólares que la mejor regla, al modelo le bastan 55% menos revisiones.
 
-## 14 · Precisión–recall muestra mejor el punto de operación
+## 12 · Si una revisión cuesta 10 USD, conviene revisar cientos de pagos al día, no 60
 
-**Ver.** Curvas ROC y precisión–recall del modelo, de solo probabilidad y de la regla, con el punto de la cola de 60 por día.
+**Ver.** Beneficio neto en la prueba según las revisiones por día, para costos de 10, 20 y 50 dólares por revisión; puntos, el cupo elegido en desarrollo.
 
-**Decir.** Con clases desbalanceadas, la curva ROC da una impresión demasiado favorable. El punto de operación del modelo revisa solo 1.5% de los pagos legítimos y aparece junto al eje vertical. En la curva precisión–recall, el mismo punto muestra que 70% de las revisiones van a pagos legítimos, y la referencia del azar es la tasa de fraude, 3.4%. Ninguna de las dos áreas considera el monto: ordenar solo por probabilidad tiene mejores áreas y lleva 47% menos dinero a la cola.
+**Decir.** Sexta fase, el despliegue, empieza por el tamaño del cupo. Si cada revisión tiene un costo, el neto es el fraude detenido menos el costo de revisar. Con 10 dólares por revisión, el desarrollo elige 450 revisiones al día y el neto en la prueba pasa de 401 mil a 513 mil dólares. Con 50 dólares, el mejor cupo es 66, casi el actual. Es decir, el cupo de 60 solo es óptimo si revisar cuesta alrededor de 50 dólares. En los doce escenarios de costo que probamos, el modelo deja más neto que la regla y que la logística.
 
-## 15 · Revisar 2% de los pagos captura 46% del fraude en USD
+## 13 · Optimizar sobre la misma validación engaña: +6.1% donde se eligió, −5.3% en días nuevos
 
-**Ver.** Ganancia acumulada: parte del fraude capturado al revisar más pagos de cada día, en dólares y en número, frente a la diagonal del azar.
+**Ver.** Ventaja de las variables nuevas contra el modelo congelado: en las ventanas donde se eligieron, en días apartados y en los dos meses de prueba.
 
-**Decir.** Una revisión al azar seguiría la diagonal. Con el cupo, 2% de los pagos, el modelo captura 46% del fraude en dólares, un lift de 22. El primer decil de cada día reúne 77% del dinero y 48% de los fraudes; la curva en dólares queda por encima de la de conteo porque el orden prioriza montos. Para igualar los dólares de la regla, el modelo necesita 55% menos revisiones.
+**Decir.** Después de la prueba intentamos mejorar el modelo, como se haría en mantenimiento. Ocho grupos de variables nuevas compitieron con validación cruzada temporal, con selección hacia adelante y una rejilla de hiperparámetros con parada temprana. En las ventanas de búsqueda, dos grupos subieron el resultado 6.1%. En quince días que la búsqueda no vio, la misma mejora bajó 5.3%, con un intervalo entero bajo cero; en la prueba quedó cerca de cero. La ganancia venía de elegir y medir sobre los mismos datos: sobreajuste a la validación. Por eso se queda el modelo congelado, y ningún cambio se adopta sin confirmarlo en días nuevos.
 
-## 16 · El beneficio neto es máximo cerca del costo
+## 14 · Despliegue: la misma cola, otro orden y un piloto
 
-**Ver.** Beneficio neto en la prueba según el umbral de fraude esperado, para costos de 10, 20 y 50 dólares por revisión, con el umbral equivalente a 60 por día.
+**Ver.** Etapas del despliegue: operación, reentrenamiento, piloto, monitoreo, respaldo y regla para adoptar cambios.
 
-**Decir.** El curso indica actuar cuando la probabilidad supera el costo dividido entre el valor en riesgo. Aquí el valor en riesgo es el monto, así que se revisa si probabilidad por monto supera el costo; por eso la cola se ordena por fraude esperado. Con un umbral bajo se revisa todo y domina el costo; con uno alto casi no se revisa. Los máximos están en 9, 17 y 33 dólares, un poco por debajo de cada costo. Revisar 60 pagos al día equivale a un umbral de 36 dólares.
+**Decir.** El despliegue no cambia el proceso del equipo: el cupo sigue siendo 60 y cambia qué pagos entran. Cada noche se puntúan los pagos del día y los 60 con mayor fraude esperado pasan a la cola. Cada semana se reentrena con los pagos que ya tienen etiqueta. El primer mes es un piloto: los días se asignan al azar a la cola actual o a la del modelo, para medir el efectivo recuperado, que los datos no traen. Se vigilan los dólares por revisión y la mezcla de productos; si el modelo queda dos semanas por debajo de la regla, se regresa a la regla.
 
-## 17 · Con cualquier costo, el modelo deja más neto
+## 15 · Ordenar la cola de revisión por fraude esperado
 
-**Ver.** Neto del modelo en la prueba para seis costos por revisión y dos supuestos de recuperación, con su cupo y el neto de la logística y la regla.
+**Ver.** Tres recomendaciones y los límites del análisis.
 
-**Decir.** Para cada costo, y suponiendo que se recupera todo o la mitad del fraude revisado, cada política elige su cupo en desarrollo y el neto se mide en la prueba: lo recuperado menos el costo de revisar. El cupo varía de más de mil a 14 revisiones diarias, y el modelo deja más neto que la regla y que la logística en los 12 escenarios. Con 100 dólares por revisión la regla deja de revisar, y el modelo todavía obtiene 128 mil.
+**Decir.** Recomendamos tres cosas. Primero, ordenar la cola con el modelo y el cupo actual: con las mismas revisiones, 137 mil dólares más de fraude detenido en dos meses, 45% más que la mejor regla. Segundo, un mes de piloto con días al azar para medir el efectivo recuperado contra la cola actual. Tercero, fijar el cupo con el costo real de revisar: si cuesta 10 dólares, conviene revisar cientos de pagos al día. Los límites: medimos exposición, no efectivo; la etiqueta de Vesta se propaga a toda la cuenta; y los datos son de 2017 y 2018. Gracias.
 
-## 18 · Las probabilidades subestiman un poco el fraude
+## 16 · Las seis fases de CRISP-DM
 
-**Ver.** Diagrama de calibración de la prueba: probabilidad estimada contra tasa de fraude observada, para el modelo y la logística.
+**Ver.** Apéndice. Cada fase de CRISP-DM con lo que se hizo, las técnicas del curso y sus láminas.
 
-**Decir.** La regla del umbral supone probabilidades calibradas. Sobre la diagonal, lo estimado coincide con lo observado. El modelo queda cerca, aunque subestima entre 2 y 20%, y por eso los máximos de la curva anterior quedan un poco por debajo del costo. La logística sobreestima en el tramo alto: estima 32% y se observa 19%. El error de Brier del modelo es 18% menor que el de asignar la tasa media; el de la logística, 7%.
+**Decir.** Si preguntan por la metodología: cada fase tiene sus láminas en la charla y en el apéndice, y cada lámina dice su fase arriba del título.
 
-## 19 · La ventaja se mantiene en todos los escenarios
+## 17 · Mapa de requisitos
 
-**Ver.** Ventaja del modelo en cada escenario de robustez, contra la regla y la logística, en los dos meses.
+**Ver.** Apéndice. Cada requisito del proyecto con cómo se cumple y en qué lámina.
 
-**Decir.** Como el fraude en dólares depende de pocos pagos grandes, la comparación se repitió sin ellos. Sin pagos sobre el percentil 99, con el monto topado, con la mitad o el doble del cupo y en los días 121 a 144, que ningún estudio previo había revisado, la ventaja contra la regla nunca baja de 20%, y el modelo gana 26 y 28 de 31 días. Contra la logística el margen es menor: el peor caso es 8.8%, sin los pagos más caros en el primer mes.
+**Decir.** Si preguntan por un requisito: aquí está dónde se cumple cada uno; el reporte tiene el detalle completo.
 
-## 20 · Origen de la diferencia en dólares
+## 18 · La prueba confirma el orden del desarrollo
 
-**Ver.** Fraude de cada mes dividido en lo que revisan ambas políticas, solo el modelo, solo la regla o ninguna.
+**Ver.** Apéndice. Cada política frente al techo del oráculo en cada mes de prueba.
 
-**Decir.** Cada dólar de fraude del mes cae en una sola categoría, y las categorías suman el fraude total. Unos 120 mil dólares al mes los revisan ambas. En las cerca de 1,200 revisiones mensuales en que difieren, el modelo encuentra 436 y 355 fraudes, y la regla 49 y 34. La regla prioriza pagos muy grandes en segmentos riesgosos, con baja precisión; el modelo encuentra fraudes medianos de clientes con historial sospechoso. Más de 220 mil dólares al mes no los revisa ninguna.
+**Decir.** El orden de desarrollo se repite en la prueba: modelo, logística, regla, solo probabilidad y mayor monto. El modelo captura 49% y 52% del techo; la regla, 38% y 32%.
 
-## 21 · Cantidades observadas y supuestos
+## 19 · El modelo supera a las reglas y a la logística; con el ensamble empata
 
-**Ver.** Tabla de cantidades observadas y supuestas, con su efecto sobre el resultado.
+**Ver.** Apéndice. Ventaja del modelo con IC 95% contra seis comparadores.
 
-**Decir.** El monto y la etiqueta son observados, pero la etiqueta sigue la regla de Vesta: un contracargo se propaga a los demás pagos de la misma cuenta. Como 77% de los fraudes está en clientes con dos o más, parte del acierto proviene de reconocer cuentas ya marcadas. Hay tres supuestos: que revisar un fraude evita su monto completo, lo que mide exposición y no efectivo recuperado; el margen de 30 días; y que la mejor regla representa la práctica actual. Afectan igual a todas las políticas, así que la comparación es válida.
+**Decir.** Además de las tres hipótesis, el modelo supera al bosque y empata con el ensamble, que es más complejo. Las columnas opacas de Vesta darían más, pero no se puede saber cuándo se calculan y se excluyeron por diseño.
 
-## 22 · Validación cruzada temporal para mejorar las variables
+## 20 · La ventaja se mantiene en todos los escenarios
 
-**Ver.** Diseño de validación: tres ventanas internas con origen móvil, un bloque de confirmación y la prueba, cada uno con 30 días de margen.
+**Ver.** Apéndice. Ventaja contra la regla y la logística con medio cupo, doble cupo, sin los pagos más caros, con el monto topado y por días.
 
-**Decir.** Después de la prueba revisamos si mejores variables agregan dinero, con un diseño registrado antes de correr. Se probaron ocho grupos nuevos, todos calculados con pagos anteriores. La búsqueda usa tres ventanas de 15 días con origen móvil; los días 106 a 120 quedan apartados para confirmar, y la prueba se lee una sola vez al final. Cada bloque deja 30 días de margen con su entrenamiento.
+**Decir.** La ventaja no depende de unos pocos pagos grandes: sin los pagos sobre el percentil 99 sigue en al menos 21% contra la regla y 9% contra la logística, y el modelo gana en 24 a 28 de los 31 días de cada mes.
 
-## 23 · Tres grupos nuevos suben 6.1% en validación
+## 21 · Con cualquier costo por revisión, el modelo deja más neto
 
-**Ver.** Selección hacia adelante: dólares en las tres ventanas internas en cada ronda; en gris, cada grupo probado; en naranja, la barra de 1%.
+**Ver.** Apéndice. Neto del modelo, la logística y la regla con seis costos por revisión y dos tasas de recuperación.
 
-**Decir.** En cada ronda se prueba cada grupo restante y se acepta el mejor solo si sube el total al menos 1% y mejora en dos de las tres ventanas. Entran perfil del monto (+2.5%), novedad y diversidad (+1.9%), y cliente fino (+1.6%). En la ronda 4 ningún grupo cumple y la búsqueda se detiene. La rejilla de hiperparámetros no supera la barra y se mantienen los del protocolo. En las ventanas internas, el dinero pasa de 296 a 314 mil dólares, +6.1%; son las mismas ventanas que eligieron los grupos.
+**Decir.** Cada política elige su cupo en desarrollo y se mide en la prueba. En los doce escenarios, el modelo deja más neto; con 100 dólares por revisión, la regla deja de revisar.
 
-## 24 · En días no usados, la ganancia no se repite
+## 22 · Cada dólar de fraude cae en una caja: ambos, solo modelo, solo regla o ninguno
 
-**Ver.** Ventaja de las variables nuevas con intervalos de 95% en los días de confirmación y en los dos meses de prueba.
+**Ver.** Apéndice. Traza del fraude de cada mes: lo que revisan ambas políticas, solo el modelo, solo la regla o ninguna.
 
-**Decir.** En los días 106 a 120, que la búsqueda no usó, el modelo con variables nuevas lleva 5.3% menos dinero que F3; el intervalo va de −9.6% a −1.1% y gana solo 6 de 15 días. La ganancia interna venía de elegir y medir con las mismas ventanas; para detectar eso existe el bloque de confirmación. En la prueba, leída después, la diferencia es de +1.5% y 0.0%. En la logística, las mismas variables suman +1.0% en la confirmación y +5.1% y +2.2% en la prueba. El historial de contracargos daría 12.2% más que las variables nuevas, pero aprende cómo Vesta propaga la etiqueta a la cuenta, así que no se usa. F3 se mantiene y el veredicto del protocolo no cambia.
+**Decir.** Modelo y regla difieren en 1,200 a 1,300 revisiones por mes. El modelo encuentra cientos de fraudes que la regla no ve; la regla encuentra pocas decenas que el modelo no ve, más caros pero muchos menos.
 
-## 25 · Despliegue y monitoreo
+## 23 · Precisión–recall muestra mejor el punto de operación que la ROC
 
-**Ver.** Tabla del despliegue: operación, reentrenamiento, piloto, monitoreo y respaldo.
+**Ver.** Apéndice. Curvas ROC y precisión–recall con la cola real de 60 por día marcada.
 
-**Decir.** Cada noche se puntúan los pagos del día y los 60 con mayor fraude esperado pasan a la cola; la decisión final sigue siendo del equipo. Cada semana se reentrena con los pagos que ya tienen etiqueta. El primer mes sería un piloto que asigna días al azar a la cola actual o a la del modelo, para medir el efectivo recuperado. Se vigilan los dólares por revisión y la composición de la cola; si durante dos semanas el modelo queda por debajo de la regla, se vuelve a la tabla por segmento.
+**Decir.** En la ROC la cola queda pegada al eje, con 1.5% de falsos positivos; en precisión–recall se ve que 70% de las revisiones van a legítimos. Las dos curvas ignoran el monto.
 
-## 26 · Recomendación: ordenar la cola con el modelo
+## 24 · Las probabilidades subestiman un poco el fraude
 
-**Ver.** Cierre: dólares de fraude en la cola en los dos meses de prueba para la regla, la logística y el modelo.
+**Ver.** Apéndice. Curva de calibración del modelo y de la logística, con el fraude esperado contra el observado en la cola.
 
-**Decir.** La recomendación es ordenar la cola con el modelo. En los dos meses de prueba, con las mismas revisiones, la mejor regla captura 301 mil dólares, la logística 372 mil y el modelo 438 mil. Las tres hipótesis fijadas antes se cumplen en ambos meses, y la ventaja se mantiene en todos los costos por revisión evaluados. Quedan dos preguntas abiertas: cuánto efectivo se recupera y cómo se compara con la práctica actual de Vesta. Un piloto con asignación aleatoria de días permite responder ambas. Gracias.
+**Decir.** El modelo reduce el error de Brier 18% contra la tasa media y la logística 7%. Las probabilidades subestiman un poco, por eso el umbral óptimo de beneficio queda algo por debajo del costo.
 
-## 27 · Veredicto del protocolo congelado
+## 25 · Qué se observa y qué se supone
 
-**Ver.** Apéndice: las tres hipótesis con su resultado, ventaja e intervalo en cada mes.
+**Ver.** Apéndice. Tabla de cantidades observadas y supuestos.
 
-**Decir.** Estas son las tres hipótesis como se escribieron en el protocolo, con la ventaja y el intervalo de cada mes. Las seis celdas superan su barra y tienen límite inferior positivo.
+**Decir.** Monto y etiqueta son observados. El dinero salvado por revisión, el retraso de la etiqueta y la práctica actual son supuestos, iguales para todas las políticas.
 
-## 28 · El modelo supera a la regla en 54 de 62 días
+## 26 · Calidad de los datos: faltantes, fechas relativas y etiqueta propagada
 
-**Ver.** Apéndice: diferencia diaria en dólares entre el modelo y la regla en los 62 días de prueba.
+**Ver.** Apéndice. Hallazgos de calidad de datos y su tratamiento.
 
-**Decir.** Si la ventaja dependiera de unos pocos días con fraudes grandes, se vería aquí. El modelo supera a la regla en 54 de 62 días, y en los días que pierde la diferencia es menor que en los que gana.
+**Decir.** Hay muchos faltantes informativos, fechas relativas y una etiqueta que Vesta propaga a la cuenta: 62% de los clientes con algún fraude tienen todos sus pagos marcados.
 
-## 29 · Importancia por permutación
+## 27 · 93 variables en cinco grupos
 
-**Ver.** Apéndice: dólares que pierde la cola al permutar cada grupo de variables.
+**Ver.** Apéndice. Catálogo de variables y cómo entran a la matriz de diseño.
 
-**Decir.** Al permutar el monto se pierden 75 mil dólares; le siguen las coincidencias M, el dispositivo y el historial del cliente, con unos 35 mil cada uno. El historial de la tarjeta aporta cerca de cero porque el del cliente ya contiene esa información.
+**Decir.** Monto y reloj, distancias e identidad, categóricas, historial de tarjeta y cliente reconstruido. Las 367 columnas opacas quedan fuera; no se repondera el desbalance para no deformar la probabilidad.
 
-## 30 · Árbol de profundidad 3 como conjunto de reglas
+## 28 · Seis controles contra la fuga de información
 
-**Ver.** Apéndice: hojas de un árbol de profundidad 3, ordenadas por dólares de fraude por pago.
+**Ver.** Apéndice. Riesgos de fuga, control y comprobación.
 
-**Decir.** Un árbol de profundidad 3 ofrece reglas legibles. Es fácil de interpretar, pero lleva 160 mil dólares a la cola, contra 264 mil del modelo en el mismo bloque.
+**Decir.** Con las etiquetas barajadas, el modelo cae a 117 mil dólares, debajo de ordenar por monto: no hay señal que venga de una fuga.
 
-## 31 · Controles
+## 29 · El historial del cliente agrega 21 mil USD en desarrollo
 
-**Ver.** Apéndice: controles en el segundo bloque de desarrollo: azar, etiquetas permutadas, monto, RFM y atípicos.
+**Ver.** Apéndice. Dólares de XGBoost con cada conjunto de variables; rombos, la logística.
 
-**Decir.** Con las etiquetas permutadas el modelo cae a 117 mil dólares, por debajo de ordenar por monto, lo que descarta una fuga de información. El bosque de aislamiento queda abajo: la rareza por sí sola no identifica fraude.
+**Decir.** Con el mismo XGBoost, el historial del cliente agrega 21 mil dólares. Las columnas opacas agregarían 71 mil, pero no se pueden fechar y se excluyeron antes de la prueba.
 
-## 32 · Calidad de los datos
+## 30 · La penalización con más dólares no coincide con la de mayor AUC
 
-**Ver.** Apéndice: hallazgos de calidad de los datos y su tratamiento.
+**Ver.** Apéndice. Dólares y AUC de la logística según la penalización L2.
 
-**Decir.** Los faltantes son frecuentes en dispositivo e identidad; se conservan con indicadores porque el faltante también es informativo. El punto más delicado es que la etiqueta se propaga a la cuenta, y se declara como advertencia.
+**Decir.** El dinero toca techo en C igual a 0.003 y el AUC en 0.01: elegir por AUC habría dado otra logística.
 
-## 33 · 93 variables en cinco grupos
+## 31 · Importancia por permutación: monto y centavos es el grupo principal
 
-**Ver.** Apéndice: catálogo de variables por grupo, cantidad y tratamiento en la matriz de diseño.
+**Ver.** Apéndice. Dólares que pierde la cola al permutar cada grupo de variables.
 
-**Decir.** El catálogo incluye 56 numéricas con cuantiles e indicadores de faltante y 37 categóricas con one-hot y una categoría para valores infrecuentes; las 367 columnas opacas quedan fuera por diseño. El desbalance no se repondera para no distorsionar la probabilidad; ponderar por monto se evaluó y dio menos dólares.
+**Decir.** El monto es el grupo más importante; sin el historial del cliente se pierden 35 mil dólares. El historial de la tarjeta aporta casi cero porque el del cliente ya lo contiene.
 
-## 34 · Seis controles contra la fuga de información
+## 32 · Parada temprana en 618 árboles
 
-**Ver.** Apéndice: cada riesgo de fuga de información, su control y cómo se verifica.
+**Ver.** Apéndice. Pérdida logarítmica en entrenamiento y validación según el número de árboles.
 
-**Decir.** Los seis controles van del margen de 30 días a la prueba congelada. El más fino es el del historial: los pagos del mismo segundo no se ven entre sí.
+**Decir.** La validación deja de mejorar cerca de 600 árboles, el mismo número que fijó el protocolo; después, el entrenamiento sigue bajando y eso es sobreajuste.
 
-## 35 · Ocho grupos candidatos, todos con pagos anteriores
+## 33 · Validación cruzada temporal para buscar variables nuevas
 
-**Ver.** Apéndice: cada grupo candidato, qué mide, cuántas variables tiene y su resultado en la búsqueda.
+**Ver.** Apéndice. Ventanas de búsqueda, días de confirmación y prueba, con su entrenamiento y margen.
 
-**Decir.** Todos los grupos se calculan con pagos en segundos estrictamente anteriores, y las frecuencias se ajustan con el entrenamiento de cada bloque. Se aceptan tres: perfil del monto, novedad y diversidad, y cliente fino. El historial de contracargos usa etiquetas con 30 días o más de antigüedad; en las ventanas internas suma +5.8% y se reporta aparte.
-
-## 36 · Cada ronda prueba todos los grupos restantes
-
-**Ver.** Apéndice: ganancia de cada grupo sobre el paso anterior en cada ronda, con el número de ventanas en que mejora.
-
-**Decir.** Cada celda muestra la ganancia en las tres ventanas sumadas y en cuántas sube; el recuadro marca el grupo aceptado. La pasada hacia atrás no quita ningún grupo: quitar cualquiera baja el total.
-
-## 37 · El ajuste de hiperparámetros no supera la barra
-
-**Ver.** Apéndice: profundidad, peso mínimo por hoja, árboles elegidos por parada temprana, dólares, AUC y pérdida logarítmica de cada combinación.
-
-**Decir.** La rejilla prueba cuatro combinaciones; el número de árboles de cada ventana se elige con parada temprana en sus últimos 10 días de entrenamiento. La mejor, profundidad 10 y peso mínimo 10, queda 1.5% abajo de los hiperparámetros del protocolo y sube en 1 de 3 ventanas. La rejilla de hiperparámetros no supera la barra y se mantienen los del protocolo. Las cuatro tienen menor pérdida logarítmica que el protocolo y aun así llevan menos dinero.
-
-## 38 · Parada temprana en 618 árboles
-
-**Ver.** Apéndice: curva de aprendizaje de la ventana 3, con la pérdida logarítmica en entrenamiento y en validación.
-
-**Decir.** Es la curva de aprendizaje del capítulo 7. La pérdida en validación es mínima en 618 árboles; después, la de entrenamiento sigue bajando y la de validación ya no mejora. El protocolo usaba 600 árboles sin parada temprana, casi el mismo número.
-
-## 39 · Frente a F3, los grupos nuevos aportan poco
-
-**Ver.** Apéndice: dólares que pierde la cola al permutar las variables del protocolo y cada grupo nuevo, en los días de confirmación.
-
-**Decir.** Al permutar las variables del protocolo se pierden 119 mil dólares; al permutar perfil del monto, 6 mil; cliente fino, 4 mil; novedad y diversidad, −3 mil. Un valor negativo indica que la cola lleva más dinero sin ese grupo.
-
-## 40 · Regularización de la logística
-
-**Ver.** Apéndice: dólares en desarrollo de la logística para cada valor de C, con su AUC.
-
-**Decir.** La penalización de la logística se eligió por dólares: el máximo está en C igual a 0.003, mientras que el AUC es máximo en 0.01. Con el historial del cliente, la logística mejora en todos los valores de C.
-
-## 41 · Un AUC mayor no garantiza más dólares
-
-**Ver.** Apéndice: AUC contra dólares en la cola para cada política de desarrollo.
-
-**Decir.** El mismo modelo, con el mismo AUC, lleva 264 mil dólares con probabilidad por monto y 101 mil con solo probabilidad. Ordenar por monto, con un AUC inferior al azar, supera a la red neuronal. La métrica de selección debe coincidir con la de la decisión.
-
-## 42 · AUC de 0.87
-
-**Ver.** Apéndice: distribución de la probabilidad estimada para fraudes y pagos legítimos, con sus medianas.
-
-**Decir.** El AUC es la probabilidad de que un fraude elegido al azar tenga mayor puntaje que un pago legítimo elegido al azar: 87 de cada 100 pares. Las medianas son 10% y 0.9%. El AUC no considera montos; multiplicar por el monto lo baja a 0.82 y aumenta 90% el dinero en la cola.
-
-## 43 · A partir del decil 4, la tasa de fraude queda bajo la media
-
-**Ver.** Apéndice: tabla de deciles del modelo con tasa, lift, capturas acumuladas y dólares observados y esperados, más la fila de la cola de 60.
-
-**Decir.** Es la tabla de deciles del curso. La cola de 60 tiene 30% de fraude, un lift de 8.7. A partir del cuarto decil, la tasa queda por debajo del promedio. En los deciles altos, el fraude esperado es menor que el observado, igual que en la calibración.
-
-## 44 · Más fraudes atrapados no implica más dólares
-
-**Ver.** Apéndice: una marca por revisión; cuántas de las 60 diarias son fraude con cada orden y los dólares por revisión, segundo mes.
-
-**Decir.** Con el mismo modelo, ordenar solo por probabilidad encuentra 27 fraudes de cada 60 revisiones y ordenar por probabilidad por monto, 16. Son menos fraudes, pero de 444 dólares en promedio contra 154: 122 dólares por revisión contra 70.
-
-## 45 · Los dólares de la regla con menos revisiones
-
-**Ver.** Apéndice: curvas de ganancia en dólares del segundo mes para el modelo, la logística, la regla y el monto.
-
-**Decir.** En el segundo mes, el modelo iguala los dólares de la regla revisando 0.75% de los pagos, 64% menos revisiones. En el cupo, una revisión del modelo vale 23 veces una revisión al azar; una de la regla, 14.
-
-## 46 · La revisión número 60 aporta 59 USD de fraude
-
-**Ver.** Apéndice: dólares de fraude por revisión en tramos de 20 lugares de la cola diaria, con líneas de costo por revisión.
-
-**Decir.** Es la versión marginal de la curva de beneficio. Las primeras 20 revisiones del modelo aportan 205 dólares cada una y la número 60 todavía aporta 59. Con 10 dólares por revisión, el cupo elegido en desarrollo sería de 450 al día, aunque en la prueba el valor marginal cayó antes; con 50 dólares, 66.
-
-## 47 · CRISP-DM
-
-**Ver.** Apéndice: las seis fases de CRISP-DM con lo que se hizo, las técnicas del curso y sus láminas.
-
-**Decir.** Esta tabla resume las seis fases de CRISP-DM y dónde aparece cada técnica del curso.
-
-## 48 · Mapa de requisitos
-
-**Ver.** Apéndice: cada requisito del proyecto, cómo se cumple y en qué lámina.
-
-**Decir.** Este es el mapa de requisitos, con la lámina donde se cumple cada uno.
+**Decir.** Tres ventanas de quince días eligen variables; los días 106 a 120 confirman; la prueba se lee una sola vez. Es el diseño detrás de la lámina 13.
