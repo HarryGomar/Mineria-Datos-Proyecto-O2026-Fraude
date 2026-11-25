@@ -2,14 +2,14 @@
 
 Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el reporte
 (`reporte/reporte.md`), el cuaderno ejecutado (`notebooks/que_pagos_revisar.ipynb`), la presentación
-(`presentacion/que-pagos-revisar.html`, láminas 1–15 y apéndice A1–A18) y el código (`src/revisar`, `scripts/`).
+(`presentacion/que-pagos-revisar.html`, láminas 1–15 y apéndice A1–A19) y el código (`src/revisar`, `scripts/`).
 
 ## Requisitos de la decisión y la evaluación
 
 | Requisito | Cómo se cumple | Reporte | Cuaderno | Láminas |
 |---|---|---|---|---|
 | Decisión: quién, cuándo, opciones y recurso | Revisión manual de pagos ya autorizados, 60 por día | 1.1 | 1 | 3 |
-| Dinero de la decisión | Dólares de fraude dentro de la cola; matriz de confusión en dólares | 1.2, 5.3 | 1, 5 | 4 |
+| Dinero de la decisión | Dólares de fraude dentro de la cola; matriz de confusión en dólares | 1.2, 5.3 | 1, 5 | 4, A19 |
 | Mejora significativa fijada antes de la prueba | H1 ≥ 20%, H2 ≥ 10%, H3 > 0, con límite inferior del IC 95% > 0 (`docs/protocolo.md`) | 1.3, 5.2 | 1, 5 | 9, A4 |
 | Mismo presupuesto para todas las políticas | 60 revisiones por día; con costo por revisión, cada política elige su cupo en desarrollo | 1.1, 5.7 | 5 | 2, A3, A6 |
 | Práctica actual y reglas fuertes | Seis reglas de tasa histórica × monto; la mejor representa la práctica actual | 4.2, 4.3 | 4 | 8, A3 |
@@ -20,8 +20,8 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 | Quitar los casos más grandes | Sin pagos sobre el percentil 99, monto topado, cupos de 30 y 120, días 121–144 | 5.8 | 5 | A5 |
 | Traza del dinero | Ambos, solo modelo, solo regla y ninguno suman el fraude del mes | 5.9 | 5 | A7 |
 | Observado contra supuesto | Monto y etiqueta observados; dinero salvado supuesto; calibración | 5.6, 8 | 5 | A9, A10 |
-| Despliegue | Cola nocturna, reentrenamiento semanal, piloto aleatorio, monitoreo y respaldo | 7 | 7 | 12, 14, 15 |
-| Mantenimiento | Búsqueda de variables con validación cruzada temporal y bloque de confirmación | 6 | 6 | 13, A17, A18 |
+| Despliegue | Cola nocturna, reentrenamiento semanal, piloto aleatorio, monitoreo y respaldo | 7 | 7 | 13, 14, 15 |
+| Mantenimiento | Búsqueda de variables con validación cruzada temporal y bloque de confirmación | 6 | 6 | 12, A17, A18 |
 | Limitaciones | Dinero etiquetado, práctica desconocida, etiqueta propagada, margen de 30 días | 8 | 8 | A10, A11 |
 | Reproducibilidad | Datos públicos con huella SHA-256, protocolo con huellas del código, scripts numerados | 10 | todo el cuaderno | 7, A2, A13 |
 
@@ -29,12 +29,12 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 
 | Fase | Reporte | Cuaderno | Láminas |
 |---|---|---|---|
-| Comprensión del negocio | 1 | 1 | 3, 4, 12, A6 |
+| Comprensión del negocio | 1 | 1 | 3, 4, 13, A6, A19 |
 | Comprensión de los datos | 2 | 2 | 5, A10, A11 |
 | Preparación de los datos | 3 | 3 | 6, A12–A14 |
 | Modelado | 4 | 4 | 7, 8, A15, A17 |
-| Evaluación | 5, 6 | 5, 6 | 2, 9–11, 13, A3–A5, A7–A9, A16, A18 |
-| Despliegue | 7 | 7 | 12, 14, 15, A6 |
+| Evaluación | 5, 6 | 5, 6 | 2, 9–12, A3–A5, A7–A9, A16, A18 |
+| Despliegue | 7 | 7 | 13, 14, 15, A6 |
 
 ## Técnicas del curso
 
@@ -44,7 +44,7 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 | Paradoja de la exactitud; precisión, recall y F1 | 5.4 | 10 |
 | Curvas ROC y precisión–recall; AUC frente a dinero | 4.5, 5.4, 5.5 | 10, A8, A15 |
 | Ganancia acumulada y lift | 5.5 | 5, 11 |
-| Umbral de decisión con costos (p > C / LTV) y curva de beneficio | 1.2, 5.7 | 4, 12, A6 |
+| Umbral de decisión con costos (p > C / LTV) y curva de beneficio | 1.2, 5.7 | 4, 13, A6, A19 |
 | Calibración y error de Brier | 5.6 | A9 |
 | Ingeniería de variables (RFM, velocidad, novedad, entidades compartidas) | 3.1, 6.1 | 6, A12, A14 |
 | Matriz de diseño: cuantiles, faltantes, one-hot con mínimo, frecuencia | 3.2 | A12 |
@@ -54,4 +54,4 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 | Detección de anomalías (bosque de aislamiento) | 4.6, 5.10 | 8 |
 | Importancia por permutación | 4.6 | A16 |
 | Validación temporal y bootstrap pareado | 4.1, 5.2 | 7, 9, A4 |
-| Validación cruzada temporal, selección hacia adelante, rejilla con parada temprana | 6 | 13, A17, A18 |
+| Validación cruzada temporal, selección hacia adelante, rejilla con parada temprana | 6 | 12, A17, A18 |
