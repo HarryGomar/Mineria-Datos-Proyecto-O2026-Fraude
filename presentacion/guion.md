@@ -23,9 +23,9 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 ## 4 · Se revisan los 60 pagos con mayor fraude esperado
 
-**Ver.** Los pagos del día 166 por probabilidad estimada y monto, en escala logarítmica; la línea marca 44 USD de fraude esperado y hay dos fraudes reales señalados.
+**Ver.** Los pagos del día 166 por probabilidad estimada y monto, en escala logarítmica; la línea marca 44 USD de fraude esperado y hay dos fraudes reales señalados. Abajo a la derecha, el fraude detenido en los dos meses de prueba al ordenar solo por probabilidad y al ordenar por fraude esperado.
 
-**Decir.** Revisar conviene cuando la probabilidad por el monto supera el costo de revisar: es la regla del curso, p mayor o igual a C entre LTV, con el monto como valor en riesgo. Con un cupo fijo, se revisan los 60 pagos con mayor probabilidad por monto. Cada punto es un pago de un día, y los 60 revisados quedan arriba de la línea. Dos fraudes reales: uno de 554 dólares con 10% de probabilidad vale 56 dólares esperados y se revisa. Otro de 30 dólares con 80% es mucho más sospechoso, pero vale 24 y pasa. Un pago caro entra a la cola con menos probabilidad que uno barato.
+**Decir.** Revisar conviene cuando la probabilidad por el monto supera el costo de revisar: es la regla del curso, p mayor o igual a C entre LTV, con el monto como valor en riesgo. Con un cupo fijo, se revisan los 60 pagos con mayor probabilidad por monto. Cada punto es un pago de un día, y los 60 revisados quedan arriba de la línea. Dos fraudes reales: uno de 554 dólares con 10% de probabilidad vale 56 dólares esperados y se revisa. Otro de 30 dólares con 80% es mucho más sospechoso, pero vale 24 y pasa. Por eso abajo a la derecha quedan fraudes con probabilidad alta: son pagos chicos. Cambiarlos por pagos caros vale la pena: en los dos meses de prueba, ordenar solo por probabilidad detiene 231 mil dólares; ordenar por fraude esperado, 438 mil, casi el doble. Y las probabilidades son confiables: cuando el modelo dice 20%, cerca de 20% resulta fraude.
 
 ## 5 · Ninguna variable separa sola el fraude
 

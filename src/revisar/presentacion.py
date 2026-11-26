@@ -172,7 +172,10 @@ def _construir():
     assert caso_a[0] * caso_a[1] > caso_b[0] * caso_b[1] and caso_b[0] > caso_a[0]
     F["cola_dia"] = G.cola_dia(dia, [
         (*caso_a[:2], f"Fraude de {caso_a[1]:,.0f} USD con {caso_a[0]:.0%}", f"{caso_a[0] * caso_a[1]:,.0f} USD esperados: se revisa", G.AZUL),
-        (*caso_b[:2], f"Fraude de {caso_b[1]:,.0f} USD con {caso_b[0]:.0%}", f"{caso_b[0] * caso_b[1]:,.0f} USD esperados: pasa", G.NARANJA)])
+        (*caso_b[:2], f"Fraude de {caso_b[1]:,.0f} USD con {caso_b[0]:.0%}", f"{caso_b[0] * caso_b[1]:,.0f} USD esperados: pasa", G.NARANJA)],
+        (f"En los dos meses de prueba, con {cupo} al día", [("Ordenar solo por probabilidad", tot(PUB), G.GRIS_MEDIO),
+                                                            ("Ordenar por fraude esperado", tot(FINAL), G.AZUL)]))
+    assert tot(FINAL) > 1.5 * tot(PUB)  # «casi el doble» en el guion
     s["matriz"] = pagina(
         f"Se revisan los {cupo} pagos con mayor fraude esperado",
         f'<figure class="fill">{F["cola_dia"]}</figure>',

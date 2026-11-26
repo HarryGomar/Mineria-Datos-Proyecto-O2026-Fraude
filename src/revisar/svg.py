@@ -1013,8 +1013,9 @@ def clases_fraude(paneles, promedio, veces=1.75):
 
 
 # Negocio: un día de pagos por probabilidad y monto; la cola son los 60 de mayor fraude esperado
-def cola_dia(dia, casos):
-    """casos: (probabilidad, monto, renglón 1, renglón 2, color), señalados con un anillo y una nota a la derecha."""
+def cola_dia(dia, casos, comparacion=None):
+    """casos: (probabilidad, monto, renglón 1, renglón 2, color), señalados con un anillo y una nota a la derecha.
+    comparacion: (título, [(nombre, usd, color)]): el fraude detenido en la prueba con cada orden de la cola."""
     X = escala((-4, 0), (130, 1000))
     Y = escala((0, 4), (560, 80))
     lx = lambda p: X(math.log10(min(max(p, 1e-4), 1)))  # noqa: E731
@@ -1036,11 +1037,20 @@ def cola_dia(dia, casos):
            texto(lx(p_lo) - 16, ly(1e4) + 78, "arriba de la línea: los 60 revisados", "micro", AZUL, "end"),
            texto(0, 50, "USD", "axis"), texto(565, 640, "Probabilidad de fraude estimada por el modelo", "label", ancla="middle")]
     xr = 1070
+    y_caso, paso_caso = (150, 186) if comparacion else (190, 230)
     for i, (p, m, r1, r2, color) in enumerate(casos):
-        yc = 190 + i * 230
+        yc = y_caso + i * paso_caso
         px, py = lx(p), ly(m)
         el += [linea(px + 16, py, xr - 14, yc - 12, color, 2), punto(px, py, 16, "none", color, 4),
                texto(xr, yc - 20, r1, "label-strong"), texto(xr, yc + 24, r2, "data", color)]
+    if comparacion:
+        titulo, filas = comparacion
+        y0, tope = 470, max(u for _, u, _ in filas)
+        el += [linea(xr, y0 - 46, 1630, y0 - 46, LINEA, 2), texto(xr, y0, titulo, "label-strong")]
+        for j, (nombre, u, color) in enumerate(filas):
+            y, ancho = y0 + 44 + j * 88, 330 * u / tope
+            el += [texto(xr, y, nombre, "micro"), rect(xr, y + 12, ancho, 30, color),
+                   texto(xr + ancho + 12, y + 38, f"{u / 1e3:,.0f} mil USD", "label-strong", color)]
     el += leyenda(130, 690, [("revisado: fraude", AZUL, "punto"), ("revisado: legítimo", "#9cc3e0", "punto"),
                              ("fraude que pasa", NARANJA, "punto"), ("legítimo", GRIS_CLARO, "punto")])
     return svg(1640, 704, "Pagos de un día por probabilidad estimada y monto; se revisan los 60 con más fraude esperado.", el)
