@@ -976,27 +976,40 @@ def matriz_dispersion(M, n):
     return svg(cx(k) - g + 4, fondo + 110, "Matriz de dispersión de cuatro variables para pagos fraudulentos y legítimos.", el)
 
 
-# Datos: qué parte del fraude y de los legítimos cae en cada categoría
-def clases_fraude(paneles):
-    el, ancho, paso_x, base, paso_y, xb = [], 390, 425, 112, 70, 212
-    X = escala((0, .8), (0, 130))
+# Datos: qué parte del fraude y de los legítimos cae en cada categoría; se resalta la categoría que destaca en cada variable
+def clases_fraude(paneles, promedio, veces=1.75):
+    """Destaca la categoría con más tasa de fraude si llega a `veces` el promedio; si no, el panel dice que ninguna destaca."""
+    el, ancho, paso_x, m, base, paso_y = [], 400, 424, 12, 150, 78
+    X = escala((0, .8), (0, 176))
     alto_max = 0
     for p, panel in enumerate(paneles):
-        x0 = p * paso_x
+        x0 = m + p * paso_x
         filas = [f for f in panel["filas"] if max(f["fraude"], f["legitimo"]) >= .01]
         top = max(filas, key=lambda f: f["tasa"])
-        el += [texto(x0, 30, panel["nombre"], "heading"),
-               texto(x0, 66, f"{top['nombre']}: {top['tasa'] * 100:.1f}% son fraude", "micro", NARANJA)]
+        destaca = top["tasa"] >= veces * promedio
+        tasas = [f["tasa"] for f in filas]
+        xb = max(60, 14 * max(len(f["nombre"]) for f in filas) + 34)
+        el.append(texto(x0, 30, panel["nombre"], "heading"))
+        if destaca:
+            el += [texto(x0, 68, f"{top['nombre']}: {top['tasa'] * 100:.1f}% son fraude", "label-strong", NARANJA),
+                   texto(x0, 100, f"{top['tasa'] / promedio:.1f} veces el promedio de {promedio * 100:.1f}%", "micro")]
+        else:
+            el += [texto(x0, 68, "Ninguno destaca", "label-strong", GRIS),
+                   texto(x0, 100, f"de {min(tasas) * 100:.1f}% a {max(tasas) * 100:.1f}% de fraude", "micro")]
         for r, f in enumerate(filas):
             y = base + r * paso_y
-            el += [texto(x0, y + 32, f["nombre"], "label-strong" if f is top else "label"),
-                   rect(x0 + xb, y, X(f["fraude"]), 22, NARANJA),
-                   texto(x0 + xb + 8 + X(f["fraude"]), y + 18, f"{f['fraude'] * 100:.0f}%", "tick", NARANJA),
-                   rect(x0 + xb, y + 26, X(f["legitimo"]), 22, GRIS_CLARO),
-                   texto(x0 + xb + 8 + X(f["legitimo"]), y + 44, f"{f['legitimo'] * 100:.0f}%", "tick", GRIS)]
+            fuerte = destaca and f is top
+            if fuerte:
+                el.append(_caja(x0 - m, y - 12, ancho, 76, NARANJA_PALIDO, 12))
+            el += [texto(x0, y + 35, f["nombre"], "label-strong" if fuerte else "label"),
+                   rect(x0 + xb, y, X(f["fraude"]), 24, NARANJA),
+                   texto(x0 + xb + 8 + X(f["fraude"]), y + 19, f"{f['fraude'] * 100:.0f}%", "tick", NARANJA),
+                   rect(x0 + xb, y + 28, X(f["legitimo"]), 24, GRIS_CLARO),
+                   texto(x0 + xb + 8 + X(f["legitimo"]), y + 47, f"{f['legitimo'] * 100:.0f}%", "tick", GRIS)]
         alto_max = max(alto_max, base + len(filas) * paso_y)
-    el += leyenda(0, alto_max + 30, [("de los fraudes", NARANJA, "caja"), ("de los legítimos", GRIS_CLARO, "caja")], 250)
-    return svg(len(paneles) * paso_x - (paso_x - ancho), alto_max + 40, "Distribución de pagos fraudulentos y legítimos en cuatro variables categóricas.", el)
+    el += leyenda(m, alto_max + 24, [("de los fraudes", NARANJA, "caja"), ("de los legítimos", GRIS_CLARO, "caja")], 250)
+    return svg(len(paneles) * paso_x - (paso_x - ancho), alto_max + 34,
+               "Distribución de pagos fraudulentos y legítimos en cuatro variables categóricas.", el)
 
 
 # Negocio: un día de pagos por probabilidad y monto; la cola son los 60 de mayor fraude esperado

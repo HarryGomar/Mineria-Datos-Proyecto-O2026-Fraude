@@ -35,9 +35,9 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 ## 6 · El fraude se concentra en tres categorías
 
-**Ver.** Cuatro variables categóricas: qué parte de los fraudes y qué parte de los legítimos cae en cada categoría; arriba de cada panel, la categoría con la tasa de fraude más alta.
+**Ver.** Cuatro variables categóricas: qué parte de los fraudes y qué parte de los legítimos cae en cada categoría. En cada variable se resalta la categoría con la tasa de fraude más alta cuando llega a casi el doble del promedio; en el correo ninguna destaca.
 
-**Decir.** Las variables categóricas muestran dónde se concentra el fraude. El producto C tiene 39% de los fraudes y solo 11% de los legítimos: 11% de sus pagos son fraude. Las tarjetas de crédito llevan la mitad de los fraudes y una cuarta parte de los legítimos. Los pagos desde celular, 28% de los fraudes y 9% de los legítimos. En el correo, hotmail tiene la tasa más alta, 5.4%, pero la diferencia es menor. Son señales útiles, pero ninguna basta sola: revisar todo el producto C serían cientos de pagos al día. El modelo las combina con el monto y el historial del cliente.
+**Decir.** Las variables categóricas muestran dónde se concentra el fraude. El producto C tiene 39% de los fraudes y solo 11% de los legítimos: 11% de sus pagos son fraude, tres veces el promedio. Las tarjetas de crédito llevan la mitad de los fraudes y una cuarta parte de los legítimos. Los pagos desde celular, 28% de los fraudes y 9% de los legítimos. En el correo ninguna categoría destaca: la tasa va de 2.4% a 5.4%. Son señales útiles, pero ninguna basta sola: revisar todo el producto C serían cientos de pagos al día. El modelo las combina con el monto y el historial del cliente.
 
 ## 7 · Los pagos caros concentran el fraude en dólares
 

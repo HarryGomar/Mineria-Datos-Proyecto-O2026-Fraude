@@ -202,11 +202,14 @@ def _construir():
     # 2 · Datos: fraude contra legítimo en cuatro variables categóricas
     alto = {c["nombre"]: max(c["filas"], key=lambda f: f["tasa"])["nombre"] for c in E["clases"]}
     assert (alto["Producto"], alto["Tipo de tarjeta"], alto["Dispositivo"]) == ("C", "Crédito", "Celular"), alto
-    F["eda_clases"] = G.clases_fraude(E["clases"])
+    destacan = [c["nombre"] for c in E["clases"] if max(f["tasa"] for f in c["filas"]) >= 1.75 * ta["promedio"]]
+    assert destacan == ["Producto", "Tipo de tarjeta", "Dispositivo"], destacan  # «tres categorías»
+    F["eda_clases"] = G.clases_fraude(E["clases"], ta["promedio"])
+    veces_c = [max(f["tasa"] for f in c["filas"]) / ta["promedio"] for c in E["clases"] if c["nombre"] in destacan]
     s["eda_clases"] = pagina(
         "El fraude se concentra en tres categorías",
         f'<figure class="fill">{F["eda_clases"]}</figure>',
-        fase=FASE[1], sub="Producto C, tarjetas de crédito y pagos desde celular: la mayor tasa de cada variable")
+        fase=FASE[1], sub=f"Producto C, crédito y celular: de {min(veces_c):.1f} a {max(veces_c):.1f} veces la tasa promedio de fraude")
 
     # 2 · Datos: el dinero está en los montos altos
     dec = _csv("exp_deciles_monto.csv")
