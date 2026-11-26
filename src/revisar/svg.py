@@ -884,20 +884,20 @@ def _flecha(puntos, color=GRIS_MEDIO, grosor=3):
 
 # Negocio: la decisión de cada noche como árbol; cada resultado dice lo que cuesta
 def decision_arbol(pagos, cupo):
-    el = [texto(0, 28, "Cada noche", "micro"), texto(300, 28, "Decide el equipo de riesgo", "micro"), texto(640, 28, "Qué pasa", "micro")]
+    el = [texto(0, 28, "Cada noche", "micro"), texto(300, 28, "Decide el equipo de riesgo", "micro"), texto(690, 28, "Qué pasa", "micro")]
     el += [_caja(0, 170, 250, 180, HIELO), texto(28, 236, "Pagos del día", "label"), texto(28, 306, f"≈{pagos:,}", "chart-big")]
     el += [_flecha([(250, 260), (275, 260), (275, 110), (300, 110)]), _flecha([(275, 260), (275, 410), (300, 410)])]
-    el += [_caja(300, 55, 290, 110, AZUL_PALIDO), texto(328, 100, "Revisar", "label-strong", AZUL),
+    el += [_caja(300, 55, 340, 110, AZUL_PALIDO), texto(328, 100, "Revisar", "label-strong", AZUL),
            texto(328, 138, f"{cupo} al día: {cupo / pagos:.0%} de los pagos", "micro"),
-           _caja(300, 355, 290, 110, HIELO), texto(328, 400, "Dejar pasar", "label-strong"),
+           _caja(300, 355, 340, 110, HIELO), texto(328, 400, "Dejar pasar", "label-strong"),
            texto(328, 438, f"≈{pagos - cupo:,} al día", "micro")]
-    el += [_flecha([(590, 110), (640, 110)]),
-           texto(668, 100, "Si es fraude, se detiene", "label-strong"), texto(668, 138, "costo: la revisión", "micro")]
-    el += [_flecha([(590, 410), (612, 410), (612, 330), (640, 330)]), _flecha([(612, 410), (612, 455), (640, 455)]),
-           texto(668, 322, "Si es legítimo: nada", "label-strong"), texto(668, 358, "costo: 0", "micro"),
-           _caja(640, 400, 400, 112, NARANJA_PALIDO, 10),
-           texto(668, 446, "Si es fraude: contracargo", "label-strong", NARANJA), texto(668, 484, "costo: todo el monto del pago", "micro", NARANJA)]
-    return svg(1040, 520, "La decisión de cada noche: revisar o dejar pasar cada pago, y lo que cuesta cada resultado.", el)
+    el += [_flecha([(640, 110), (690, 110)]),
+           texto(718, 100, "Si es fraude, se detiene", "label-strong"), texto(718, 138, "costo: la revisión", "micro")]
+    el += [_flecha([(640, 410), (662, 410), (662, 330), (690, 330)]), _flecha([(662, 410), (662, 455), (690, 455)]),
+           texto(718, 322, "Si es legítimo: nada", "label-strong"), texto(718, 358, "costo: 0", "micro"),
+           _caja(690, 400, 400, 112, NARANJA_PALIDO, 10),
+           texto(718, 446, "Si es fraude: contracargo", "label-strong", NARANJA), texto(718, 484, "costo: todo el monto del pago", "micro", NARANJA)]
+    return svg(1090, 520, "La decisión de cada noche: revisar o dejar pasar cada pago, y lo que cuesta cada resultado.", el)
 
 
 # Negocio: lo que cuesta un fraude que pasa, en un día típico y uno por uno

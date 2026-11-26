@@ -860,7 +860,7 @@ CSS = r"""
 .tabla.crisp th, .tabla.crisp td { padding: 9px 22px 9px 0; }
 .tabla.crisp tbody th { font-size: 24px; width: 15%; }
 /* Decisión: el árbol y lo que cuesta el fraude, lado a lado */
-.split.dos { grid-template-columns: minmax(0, 1040fr) minmax(0, 600fr); gap: 72px; }
+.split.dos { grid-template-columns: minmax(0, 1090fr) minmax(0, 600fr); gap: 72px; }
 /* Datos: la matriz de dispersión y tres hallazgos */
 .split.matriz { grid-template-columns: minmax(0, 940fr) minmax(0, 600fr); gap: 90px; }
 svg .tick { font: 400 18px var(--mono); fill: var(--muted); }
