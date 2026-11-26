@@ -27,34 +27,47 @@ E["costo_fraude"] = dict(promedio=float(mf.mean()), mediana=float(np.median(mf))
                          fraudes_dia=float(por_dia["fraudes"].median()), usd_dia=float(por_dia["usd"].median()),
                          bordes=[float(b) for b in bordes], fraudes=[int(c) for c in np.histogram(mf, bordes)[0]])
 
-# Matriz de dispersión: cinco variables numéricas, en escala logarítmica cuando el rango lo pide
-horas = df["h_cliente_segundos_desde"].to_numpy(float) / 3600
-VARS = [
-    ("Monto, USD", np.log10(np.clip(m, 1, 5000)), (0, np.log10(5000)), [(1, "10"), (3, "1,000")]),
-    ("Hora del día", df["hora"].to_numpy(float) + .5, (0, 24), [(6, "6"), (12, "12"), (18, "18")]),
-    ("Días desde el alta", np.log10(1 + np.clip(df["D1"].to_numpy(float), 0, 640)), (0, np.log10(641)),
-     [(np.log10(11), "10"), (np.log10(101), "100")]),
-    ("Desde su pago anterior", np.log10(np.clip(horas, .01, 3000)), (-2, np.log10(3000)),
-     [(0, "1 h"), (np.log10(720), "1 mes")]),
-    ("Pagos anteriores", np.log10(1 + np.clip(df["h_cliente_previos"].to_numpy(float), 0, 999)), (0, 3),
-     [(np.log10(11), "10"), (np.log10(101), "100")]),
-]
+# Matriz de dispersión: cuatro variables numéricas, sin los extremos. Los puntos de hora y días desde el alta llevan un
+# ruido de menos de una unidad para que los valores enteros no se encimen; los histogramas usan los valores sin ruido.
 rng = np.random.default_rng(7)
-muestra = {c: np.sort(rng.choice(np.flatnonzero(y == v), 300, replace=False)) for c, v in (("fraude", 1), ("legitimo", 0))}
-E["matriz"] = dict(variables=[], muestra={c: [[None if np.isnan(v[i]) else round(float(v[i]), 3) for _, v, _, _ in VARS] for i in idx]
-                                          for c, idx in muestra.items()})
-for nombre, v, (lo, hi), marcas in VARS:
-    b = np.linspace(lo, hi, 25)
+d1, hora = df["D1"].to_numpy(float), df["hora"].to_numpy(float)
+horas = df["h_cliente_segundos_desde"].to_numpy(float) / 3600
+n = len(df)
+VARS = [  # nombre, valores, valores de los puntos, rango, bordes de los histogramas, marcas
+    ("Monto, USD", np.log10(m), np.log10(m), (np.log10(5), np.log10(2000)), 22, [(1, "10"), (2, "100"), (3, "1,000")]),
+    ("Hora del día", hora + .5, hora + rng.uniform(.1, .9, n), (0, 24), 24, [(6, "6"), (12, "12"), (18, "18")]),
+    ("Días desde el alta", np.log10(1 + d1), np.log10(1 + np.clip(d1 + rng.uniform(-.45, .45, n), 0, None)), (0, np.log10(641)), 14,
+     [(0, "0"), (np.log10(11), "10"), (np.log10(101), "100")]),
+    ("Desde su pago anterior", np.log10(horas), np.log10(horas), (np.log10(1 / 120), np.log10(2000)), 22,
+     [(0, "1 h"), (np.log10(24), "1 día", "solo y"), (np.log10(720), "1 mes")]),
+]
+fuera = {}
+for nombre, v, _, (lo, hi), _, _ in VARS:
+    ok = ~np.isnan(v)
+    fuera[nombre] = float(((v[ok] < lo) | (v[ok] > hi)).mean())
+assert max(fuera.values()) < .02, fuera
+muestra = {c: np.sort(rng.choice(np.flatnonzero(y == k), 300, replace=False)) for c, k in (("fraude", 1), ("legitimo", 0))}
+
+
+def _punto(w, lo, hi):
+    return None if np.isnan(w) or not lo <= w <= hi else round(float(w), 3)
+
+
+E["matriz"] = dict(variables=[], fuera=fuera, sin_anterior=float(np.isnan(horas).mean()),
+                   muestra={c: [[_punto(pv[i], lo, hi) for _, _, pv, (lo, hi), _, _ in VARS] for i in idx] for c, idx in muestra.items()})
+for nombre, v, _, (lo, hi), nb, marcas in VARS:
+    b = np.linspace(lo, hi, nb + 1)
     dens = {c: np.histogram(v[(y == k) & ~np.isnan(v)], b)[0] for c, k in (("fraude", 1), ("legitimo", 0))}
-    E["matriz"]["variables"].append(dict(nombre=nombre, rango=[float(lo), float(hi)], marcas=[[float(a), t] for a, t in marcas],
+    E["matriz"]["variables"].append(dict(nombre=nombre, rango=[float(lo), float(hi)], marcas=[[float(a), *t] for a, *t in marcas],
                                          bordes=[float(x) for x in b], **{c: [float(x) for x in d / d.sum()] for c, d in dens.items()}))
 
-# Tasas que la presentación cita junto a la matriz
-d1, hora = df["D1"].to_numpy(float), df["hora"].to_numpy(float)
-por_hora = pd.Series(y).groupby(hora).mean()
-E["tasas"] = dict(promedio=float(y.mean()), alta_0_1=float(y[(d1 > 0) & (d1 <= 1)].mean()), alta_1_7=float(y[(d1 > 1) & (d1 <= 7)].mean()),
-                  hora_min=float(por_hora.min()), hora_max=float(por_hora.max()),
-                  mediana_fraude=float(np.median(m[y == 1])), mediana_legitimo=float(np.median(m[y == 0])))
+# Tasas y medianas que la presentación cita junto a la matriz
+por_hora = pd.DataFrame({"y": y, "h": hora}).groupby("h")["y"].agg(["mean", "size"])
+E["tasas"] = dict(promedio=float(y.mean()), alta_1_7=float(y[(d1 >= 1) & (d1 <= 7)].mean()), alta_0=float(y[d1 == 0].mean()),
+                  hora_min=float(por_hora["mean"].min()), hora_max=float(por_hora["mean"].max()),
+                  hora_max_es_de_pocos_pagos=bool(por_hora["mean"].idxmax() in por_hora["size"].nsmallest(4).index),
+                  mediana_fraude=float(np.median(m[y == 1])), mediana_legitimo=float(np.median(m[y == 0])),
+                  desde_fraude=float(np.nanmedian(horas[y == 1])), desde_legitimo=float(np.nanmedian(horas[y == 0])))
 
 # Fraude contra legítimo en cuatro variables categóricas: qué parte de cada clase cae en cada categoría
 CATS = [("Producto", df["ProductCD"], {"W": "W", "C": "C", "R": "R", "H": "H", "S": "S"}),

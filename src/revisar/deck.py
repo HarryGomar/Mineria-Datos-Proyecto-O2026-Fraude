@@ -26,11 +26,11 @@ def fuentes_embebidas() -> str:
     return "\n".join(estilos)
 
 
-def pagina(titulo: str, contenido: str, pie: str = "", clase: str = "", fase: str = "") -> str:
-    """Una lámina: fase de CRISP-DM (etiqueta pequeña), título, contenido y pie."""
+def pagina(titulo: str, contenido: str, pie: str = "", clase: str = "", fase: str = "", sub: str = "") -> str:
+    """Una lámina: fase de CRISP-DM (etiqueta pequeña), título, subtítulo opcional, contenido y pie."""
     return (f'<section class="slide {clase}" data-title="{escape(re.sub("<[^>]+>", "", titulo))}">'
             + (f'<p class="kicker">{fase}</p>' if fase else "")
-            + f"<h2>{titulo}</h2>{contenido}{f'<footer>{pie}</footer>' if pie else ''}</section>")
+            + f"<h2>{titulo}</h2>" + (f'<p class="subtitulo">{sub}</p>' if sub else "") + f"{contenido}{f'<footer>{pie}</footer>' if pie else ''}</section>")
 
 
 def notas(guion: Path, n: int) -> str:
