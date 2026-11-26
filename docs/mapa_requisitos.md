@@ -2,7 +2,7 @@
 
 Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el reporte
 (`reporte/reporte.md`), el cuaderno ejecutado (`notebooks/que_pagos_revisar.ipynb`), la presentación
-(`presentacion/que-pagos-revisar.html`, láminas 1–15 y apéndice A1–A18) y el código (`src/revisar`, `scripts/`).
+(`presentacion/que-pagos-revisar.html`, láminas 1–17 y apéndice A1–A18) y el código (`src/revisar`, `scripts/`).
 
 ## Requisitos de la decisión y la evaluación
 
@@ -10,48 +10,49 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 |---|---|---|---|---|
 | Decisión: quién, cuándo, opciones y recurso | Revisión manual de pagos ya autorizados, 60 por día | 1.1 | 1 | 3 |
 | Dinero de la decisión | Dólares de fraude dentro de la cola; matriz de confusión en dólares | 1.2, 5.3 | 1, 5 | 3, 4 |
-| Mejora significativa fijada antes de la prueba | H1 ≥ 20%, H2 ≥ 10%, H3 > 0, con límite inferior del IC 95% > 0 (`docs/protocolo.md`) | 1.3, 5.2 | 1, 5 | 9, A4 |
+| Mejora significativa fijada antes de la prueba | H1 ≥ 20%, H2 ≥ 10%, H3 > 0, con límite inferior del IC 95% > 0 (`docs/protocolo.md`) | 1.3, 5.2 | 1, 5 | 11, A4 |
 | Mismo presupuesto para todas las políticas | 60 revisiones por día; con costo por revisión, cada política elige su cupo en desarrollo | 1.1, 5.7 | 5 | 2, A3, A6 |
-| Práctica actual y reglas fuertes | Seis reglas de tasa histórica × monto; la mejor representa la práctica actual | 4.2, 4.3 | 4 | 8, A3 |
-| Base aprendida con la misma información | Logística L2 con las mismas variables y la misma matriz de diseño | 4.2, 4.5 | 4 | 8, A14, A15 |
-| Comparador publicado | El enfoque de la competencia IEEE-CIS: el mismo modelo ordenado por probabilidad | 4.3, 5.4 | 5 | 9, 10, A8 |
-| Elegir en desarrollo y probar en dos periodos o más | Días 61–120 para elegir; días 121–151 y 152–182 congelados, una sola corrida | 4.1, 5 | 4, 5 | 7, 8, A3 |
-| Ganancia por periodo con intervalo pareado | Bootstrap pareado de 1,000 réplicas que remuestrean días; recalculado en el cuaderno | 5.2 | 5 | 9, A4 |
+| Práctica actual y reglas fuertes | Seis reglas de tasa histórica × monto; la mejor representa la práctica actual | 4.2, 4.3 | 4 | 10, A3 |
+| Base aprendida con la misma información | Logística L2 con las mismas variables y la misma matriz de diseño | 4.2, 4.5 | 4 | 10, A14, A15 |
+| Comparador publicado | El enfoque de la competencia IEEE-CIS: el mismo modelo ordenado por probabilidad | 4.3, 5.4 | 5 | 11, 12, A8 |
+| Elegir en desarrollo y probar en dos periodos o más | Días 61–120 para elegir; días 121–151 y 152–182 congelados, una sola corrida | 4.1, 5 | 4, 5 | 9, 10, A3 |
+| Ganancia por periodo con intervalo pareado | Bootstrap pareado de 1,000 réplicas que remuestrean días; recalculado en el cuaderno | 5.2 | 5 | 11, A4 |
 | Quitar los casos más grandes | Sin pagos sobre el percentil 99, monto topado, cupos de 30 y 120, días 121–144 | 5.8 | 5 | A5 |
 | Traza del dinero | Ambos, solo modelo, solo regla y ninguno suman el fraude del mes | 5.9 | 5 | A7 |
 | Observado contra supuesto | Monto y etiqueta observados; dinero salvado supuesto; calibración | 5.6, 8 | 5 | A9, A10 |
-| Despliegue | Cola nocturna, reentrenamiento semanal, piloto aleatorio, monitoreo y respaldo | 7 | 7 | 13, 14, 15 |
-| Mantenimiento | Búsqueda de variables con validación cruzada temporal y bloque de confirmación | 6 | 6 | 12, A17, A18 |
+| Despliegue | Cola nocturna, reentrenamiento semanal, piloto aleatorio, monitoreo y respaldo | 7 | 7 | 15, 16, 17 |
+| Mantenimiento | Búsqueda de variables con validación cruzada temporal y bloque de confirmación | 6 | 6 | 14, A17, A18 |
 | Limitaciones | Dinero etiquetado, práctica desconocida, etiqueta propagada, margen de 30 días | 8 | 8 | A10, A11 |
-| Reproducibilidad | Datos públicos con huella SHA-256, protocolo con huellas del código, scripts numerados | 10 | todo el cuaderno | 7, A2, A13 |
+| Reproducibilidad | Datos públicos con huella SHA-256, protocolo con huellas del código, scripts numerados | 10 | todo el cuaderno | 9, A2, A13 |
 
 ## CRISP-DM
 
 | Fase | Reporte | Cuaderno | Láminas |
 |---|---|---|---|
-| Comprensión del negocio | 1 | 1 | 3, 4, 13, A6 |
-| Comprensión de los datos | 2 | 2 | 5, A10, A11 |
-| Preparación de los datos | 3 | 3 | 6, A12–A14 |
-| Modelado | 4 | 4 | 7, 8, A15, A17 |
-| Evaluación | 5, 6 | 5, 6 | 2, 9–12, A3–A5, A7–A9, A16, A18 |
-| Despliegue | 7 | 7 | 13, 14, 15, A6 |
+| Comprensión del negocio | 1 | 1 | 3, 4, 15, A6 |
+| Comprensión de los datos | 2 | 2 | 5–7, A10, A11 |
+| Preparación de los datos | 3 | 3 | 8, A12–A14 |
+| Modelado | 4 | 4 | 9, 10, A15, A17 |
+| Evaluación | 5, 6 | 5, 6 | 2, 11–14, A3–A5, A7–A9, A16, A18 |
+| Despliegue | 7 | 7 | 15, 16, 17, A6 |
 
 ## Técnicas del curso
 
 | Técnica | Reporte | Láminas |
 |---|---|---|
 | Matriz de confusión con costos y beneficios | 1.2, 5.3 | 3, 4 |
-| Paradoja de la exactitud; precisión, recall y F1 | 5.4 | 10, A8 |
-| Curvas ROC y precisión–recall; AUC frente a dinero | 4.5, 5.4, 5.5 | 10, A8, A15 |
-| Ganancia acumulada y lift | 5.5 | 5, 11 |
-| Umbral de decisión con costos (p > C / LTV) y curva de beneficio | 1.2, 5.7 | 4, 13, A6 |
+| Análisis exploratorio: matriz de dispersión y distribuciones por clase | 2 | 5, 6 |
+| Paradoja de la exactitud; precisión, recall y F1 | 5.4 | 12, A8 |
+| Curvas ROC y precisión–recall; AUC frente a dinero | 4.5, 5.4, 5.5 | 12, A8, A15 |
+| Ganancia acumulada y lift | 5.5 | 7, 13 |
+| Umbral de decisión con costos (p > C / LTV) y curva de beneficio | 1.2, 5.7 | 4, 15, A6 |
 | Calibración y error de Brier | 5.6 | A9 |
-| Ingeniería de variables (RFM, velocidad, novedad, entidades compartidas) | 3.1, 6.1 | 6, A12, A14 |
+| Ingeniería de variables (RFM, velocidad, novedad, entidades compartidas) | 3.1, 6.1 | 8, A12, A14 |
 | Matriz de diseño: cuantiles, faltantes, one-hot con mínimo, frecuencia | 3.2 | A12 |
 | Fuga de información | 3.3 | A13 |
-| Árboles, bosque aleatorio, boosting, redes y ensambles | 4 | 8 |
+| Árboles, bosque aleatorio, boosting, redes y ensambles | 4 | 10 |
 | Regularización L2 | 4.5 | A15 |
-| Detección de anomalías (bosque de aislamiento) | 4.6, 5.10 | 8 |
+| Detección de anomalías (bosque de aislamiento) | 4.6, 5.10 | 10 |
 | Importancia por permutación | 4.6 | A16 |
-| Validación temporal y bootstrap pareado | 4.1, 5.2 | 7, 9, A4 |
-| Validación cruzada temporal, selección hacia adelante, rejilla con parada temprana | 6 | 12, A17, A18 |
+| Validación temporal y bootstrap pareado | 4.1, 5.2 | 9, 11, A4 |
+| Validación cruzada temporal, selección hacia adelante, rejilla con parada temprana | 6 | 14, A17, A18 |

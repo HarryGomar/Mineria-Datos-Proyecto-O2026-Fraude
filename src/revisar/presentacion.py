@@ -1,6 +1,6 @@
 """Contenido de la presentación, con gráficas vectoriales. Todas las cifras se leen de resultados/.
 
-La charla son 15 láminas: el resumen, las seis fases de CRISP-DM y la recomendación. El apéndice guarda el detalle
+La charla son 17 láminas: el resumen, las seis fases de CRISP-DM y la recomendación. El apéndice guarda el detalle
 para las preguntas. figuras() entrega además las gráficas del reporte y del cuaderno, estén o no en una lámina.
 """
 from __future__ import annotations
@@ -19,8 +19,8 @@ SALIDA = RAIZ / "presentacion" / "que-pagos-revisar.html"
 GUION = RAIZ / "presentacion" / "guion.md"
 APENDICE = "apendice appendix"
 P = ("P1", "P2")
-CHARLA = ("portada", "resumen", "decision", "matriz", "deciles", "cliente", "calendario", "modelos", "hipotesis", "metricas",
-          "ganancia", "espejismo", "beneficio", "despliegue", "cierre")
+CHARLA = ("portada", "resumen", "decision", "matriz", "eda_matriz", "eda_clases", "deciles", "cliente", "calendario", "modelos",
+          "hipotesis", "metricas", "ganancia", "espejismo", "beneficio", "despliegue", "cierre")
 ANEXO = ("crisp", "requisitos", "prueba", "intervalos", "robustez", "costo", "traza", "roc", "calibracion", "observado", "calidad",
          "catalogo", "candados", "ablacion", "regularizacion", "importancia", "aprendizaje", "validacion")
 FASE = ("1 · Comprensión del negocio", "2 · Comprensión de los datos", "3 · Preparación de los datos", "4 · Modelado",
@@ -89,7 +89,7 @@ def _construir():
     """(láminas en orden, {clave: svg}) con las cifras de resultados/."""
     S, R, X, PJ = _j("desarrollo_seleccion.json"), _j("prueba.json"), _j("exploracion.json"), _j("presentacion.json")
     L, CC = _j("lecciones.json"), _j("curvas_curso.json")
-    VA, AX = _j("variables.json"), _j("anexo_prueba_variables.json")
+    VA, AX, E = _j("variables.json"), _j("anexo_prueba_variables.json"), _j("eda.json")
     assert not VA["rapido"] and VA["elegidos"] == AX["elegidos"], "variables.json y el anexo de la prueba no corresponden"
     FINAL, REGLA, LOGIT, PUB = S["final"], S["mejor_regla"], S["mejor_logit"], "PUBLICADO"
     U, ve = R["umbrales"], R["veredicto"]
@@ -151,15 +151,14 @@ def _construir():
         fase="Resumen")
 
     # 1 · Negocio: la decisión
-    pagos_dia = int(round(CC["pagos"] / CC["n_dias"], -2))
+    cf = E["costo_fraude"]
+    pagos_dia = int(round(cf["pagos_dia"], -2))  # mediana de los días 1–120
     F["decision"] = G.dia_decision(dia)  # el reporte la usa
     F["arbol"] = G.decision_arbol(pagos_dia, cupo)
+    F["fraude_montos"] = G.fraude_montos(cf)
     s["decision"] = pagina(
-        f"Cada noche se revisan {cupo} de unos {ent(pagos_dia)} pagos; un fraude que pasa se pierde completo",
-        f'<figure class="fill">{F["arbol"]}</figure>'
-        '<div class="clock-line tres"><p><b>Quién decide</b><span>el equipo de riesgo del procesador de pagos</span></p>'
-        '<p><b>Hoy</b><span>una regla fija: tasa histórica de fraude × monto</span></p>'
-        f'<p><b>Éxito</b><span>más dólares de fraude detenidos con las mismas {cupo} revisiones</span></p></div>',
+        f"Cada noche se revisan {cupo} de unos {ent(pagos_dia)} pagos; el fraude que no se revisa se pierde completo",
+        f'<div class="split dos fill"><figure>{F["arbol"]}</figure><figure>{F["fraude_montos"]}</figure></div>',
         fase=FASE[0])
 
     # 1 · Negocio: se ordena por fraude esperado; dos fraudes reales de un día
@@ -171,9 +170,37 @@ def _construir():
         (*caso_a[:2], f"Fraude de {caso_a[1]:,.0f} USD con {caso_a[0]:.0%}", f"{caso_a[0] * caso_a[1]:,.0f} USD esperados: se revisa", G.AZUL),
         (*caso_b[:2], f"Fraude de {caso_b[1]:,.0f} USD con {caso_b[0]:.0%}", f"{caso_b[0] * caso_b[1]:,.0f} USD esperados: pasa", G.NARANJA)])
     s["matriz"] = pagina(
-        "Se revisa el fraude esperado en dólares, no el pago más sospechoso",
+        f"Se revisan los {cupo} pagos con mayor fraude esperado: probabilidad de fraude × monto",
         f'<figure class="fill">{F["cola_dia"]}</figure>',
         fase=FASE[0])
+
+    # 2 · Datos: matriz de dispersión, fraude contra legítimo
+    ta = E["tasas"]
+    n_m = len(E["matriz"]["muestra"]["fraude"])
+    assert ta["alta_0_1"] > 3 * ta["promedio"] and ta["hora_max"] > 4 * ta["hora_min"]
+    F["eda_matriz"] = G.matriz_dispersion(E["matriz"], n_m)
+    s["eda_matriz"] = pagina(
+        "Ninguna variable separa sola el fraude: el modelo tiene que combinarlas",
+        _split(F["eda_matriz"],
+               '<dl class="ritmo">'
+               f'<dt>Cuentas nuevas</dt><dd>Con un día o menos desde el alta, {pct(ta["alta_0_1"], False, 1)} de los pagos son fraude; '
+               f'el promedio es {pct(ta["promedio"], False, 1)}.</dd>'
+               f'<dt>Hora del día</dt><dd>La tasa de fraude va de {pct(ta["hora_min"], False, 1)} a {pct(ta["hora_max"], False, 1)} '
+               'según la hora.</dd>'
+               f'<dt>Monto</dt><dd>La mediana es {ta["mediana_fraude"]:.0f} USD en fraude y {ta["mediana_legitimo"]:.0f} USD en '
+               'legítimos: el monto solo no distingue.</dd></dl>'
+               '<div class="rule"><p>Las dos clases se enciman en cada par de variables.</p></div>',
+               "split matriz fill"),
+        fase=FASE[1])
+
+    # 2 · Datos: fraude contra legítimo en cuatro variables categóricas
+    alto = {c["nombre"]: max(c["filas"], key=lambda f: f["tasa"])["nombre"] for c in E["clases"]}
+    assert (alto["Producto"], alto["Tipo de tarjeta"], alto["Dispositivo"]) == ("C", "Crédito", "Celular"), alto
+    F["eda_clases"] = G.clases_fraude(E["clases"])
+    s["eda_clases"] = pagina(
+        "El fraude se concentra en el producto C, las tarjetas de crédito y los pagos desde celular",
+        f'<figure class="fill">{F["eda_clases"]}</figure>',
+        fase=FASE[1])
 
     # 2 · Datos: el dinero está en los montos altos
     dec = _csv("exp_deciles_monto.csv")
@@ -199,25 +226,23 @@ def _construir():
     assert 1.75 < veces < 2.05, veces
     F["cliente"] = G.cliente(cats, un["tasa_fraude"])  # el reporte la usa
     cortos = ("< 1 hora", "1–24 horas", "1–7 días", "> 7 días", "Primer pago")
-    F["cliente_armado"] = G.cliente_armado((("Tarjeta", "card1"), ("Dirección", "addr1"), ("Fecha de alta", "día − D1")),
-                                           ck["clientes"], ck["tarjetas_card1"], [(c, t, n) for c, (_, t, n) in zip(cortos, cats)],
-                                           un["tasa_fraude"], capas[2] - capas[1])
+    F["cliente_armado"] = G.cliente_armado(E["cliente_ejemplo"], ck["clientes"], ck["tarjetas_card1"],
+                                           [(c, t, n) for c, (_, t, n) in zip(cortos, cats)], un["tasa_fraude"], capas[2] - capas[1])
     s["cliente"] = pagina(
-        "Reconstruimos al cliente: si volvió a pagar en menos de una hora, el fraude casi se duplica",
+        "Cliente = tarjeta + dirección + fecha de alta; si vuelve a pagar en menos de una hora, el fraude casi se duplica",
         f'<figure class="fill">{F["cliente_armado"]}</figure>',
         fase=FASE[2])
 
     # 4 · Modelado: diseño de la prueba
     F["tiempo"] = G.tiempo(PJ["dias"])
-    F["calendario"] = G.tiempo(PJ["dias"], ("Entrenamiento", "Desarrollo: aquí se decide todo", "Prueba: se abre una sola vez"),
-                               estudio=False, cortes=(61, 121))
+    F["calendario"] = G.tiempo(PJ["dias"], ("Entrenamiento", "Desarrollo", "Prueba"), estudio=False, cortes=(61, 121),
+                               notas=("El modelo aprende con estos días.", "Se eligen modelo, variables y rivales.",
+                                      "Congelada: se evalúa una sola vez."),
+                               pie=f"Entre entrenar y evaluar quedan {margen} días, porque el contracargo tarda en llegar.")
     s["calendario"] = pagina(
-        "Se decide con el pasado y se prueba una sola vez con el futuro",
-        f'<figure class="fill">{F["calendario"]}</figure>'
-        '<div class="clock-line"><p><b>Partición por tiempo</b><span>no al azar, como en producción</span></p>'
-        f'<p><b>{margen} días de margen</b><span>el contracargo tarda en llegar</span></p>'
-        '<p><b>Protocolo congelado</b><span>modelo, rivales y metas, antes de la prueba</span></p>'
-        '<p><b>Una sola lectura</b><span>nada se ajustó después</span></p></div>',
+        f"Partición por tiempo: elegimos con los días {S['bloques']['D1']['inicio']}–{S['bloques']['D2']['fin']} "
+        f"y probamos una sola vez con los días {R['P1']['dias'][0]}–{R['P2']['dias'][1]}",
+        f'<figure class="fill">{F["calendario"]}</figure>',
         fase=FASE[3])
 
     # 4 · Modelado: del árbol al boosting
@@ -226,12 +251,17 @@ def _construir():
          ("Bosque\naleatorio", total("RF|F3"), G.AZUL_MEDIO), ("XGBoost", total(FINAL), G.AZUL)],
         ("Logística L2", total(LOGIT), G.VERDE),
         [("Ensamble", total("ENS|F3")), ("Red\nneuronal", total("MLP|F3")), ("Bosque de\naislamiento", total("ISO|F3"))])
+    rivales = ("CART|F3", "RF|F3", "ENS|F3", "MLP|F3", "ISO|F3", LOGIT, REGLA, FINAL)
+    assert max(rivales, key=total) == FINAL and all(dv[FINAL][b] > dv[LOGIT][b] for b in ("D1", "D2"))
+    assert total("CART|F3") < total(REGLA) < total("RF|F3")
     s["modelos"] = pagina(
-        "Un árbol solo no supera a la regla; el bosque y el boosting sí",
+        f"XGBoost es el que más fraude detiene en desarrollo: {mil(total(FINAL))} mil USD, contra {mil(total(REGLA))} mil de la regla",
         _split(F["modelos"],
-               '<p class="sub">Mismas 93 variables y mismo cupo</p>'
-               '<p>Un árbol solo varía mucho con los datos. El bosque promedia cientos; el boosting corrige los errores de los anteriores.</p>'
-               '<div class="rule"><p>XGBoost gana a la logística en los dos bloques de desarrollo y pasa a la prueba.</p></div>'),
+               f'<p class="big">{pct(total(FINAL) / total(REGLA) - 1)}</p>'
+               f'<p class="sub">más fraude detenido que la mejor regla, {d_desarrollo}</p>'
+               f'<p>Todos usan las mismas 93 variables y revisan {cupo} pagos al día.</p>'
+               '<div class="rule"><p>Un árbol solo queda debajo de la regla; combinar cientos de árboles la supera.</p>'
+               '<p>XGBoost también supera a la logística en los dos bloques de desarrollo: por eso es el que pasa a la prueba.</p></div>'),
         fase=FASE[3])
 
     # 5 · Evaluación: la ventaja de cada mes contra la meta fijada antes
@@ -240,12 +270,13 @@ def _construir():
                               ("Contra la logística", U["H2"], [(m, cl[x]["rel"], cl[x]["rel_ic95"]) for m, x in meses])])
     cumplen = all(ve[x][k] for x in P for k in ("H1_regla", "H2_logistica"))
     s["hipotesis"] = pagina(
-        "En los dos meses de prueba, el modelo supera las metas fijadas antes de abrirla" if cumplen
-        else "El modelo no supera todas las metas fijadas antes de la prueba",
+        "El modelo cumple las dos metas en ambos meses de prueba" if cumplen else "El modelo no cumple todas las metas en la prueba",
         _split(F["hipotesis"],
-               '<p class="sub">Metas registradas antes de la prueba</p>'
-               f'<p>{pct(U["H1"])} contra la regla y {pct(U["H2"])} contra la logística, con el intervalo de 95% entero sobre cero.</p>'
-               f'<div class="rule"><p>Cada intervalo remuestrea días completos {ent(replicas)} veces.</p></div>'),
+               '<p class="sub">Metas fijadas antes de la prueba</p>'
+               f'<dl class="ritmo"><dt>Contra la regla</dt><dd>Detener al menos {pct(U["H1"], False)} más fraude.</dd>'
+               f'<dt>Contra la logística</dt><dd>Detener al menos {pct(U["H2"], False)} más.</dd></dl>'
+               '<div class="rule"><p>En las dos, el intervalo de 95% tiene que quedar por encima de cero. '
+               f'Cada intervalo remuestrea días completos {ent(replicas)} veces.</p></div>'),
         fase=FASE[4])
 
     # 5 · Evaluación: la exactitud y el AUC eligen otra cola
@@ -257,7 +288,8 @@ def _construir():
                                   ("Logística", cv["logistica"]["auc"], op["logistica"]["usd"], G.VERDE, "izq"),
                                   ("Modelo", cv["modelo"]["auc"], op["modelo"]["usd"], G.AZUL, "izq")], ("Solo probabilidad", "Modelo"))
     s["metricas"] = pagina(
-        f"El mejor AUC detiene {pct(1 - op['solo_p']['usd'] / op['modelo']['usd'], False)} menos fraude: el modelo se elige por dólares",
+        f"El orden con mejor AUC detiene {pct(1 - op['solo_p']['usd'] / op['modelo']['usd'], False)} menos fraude: "
+        "elegimos el modelo por dólares, no por AUC",
         _split(F["metricas"],
                f'<p class="big">{pct(op["nunca"]["exactitud"], False, 1)}</p><p class="sub">de exactitud sin revisar un solo pago</p>'
                '<div class="rule"><p>Exactitud y AUC cuentan aciertos: un fraude de 8 USD pesa igual que uno de 900.</p>'
@@ -298,13 +330,14 @@ def _construir():
     cm = cc[f"{mejor_k}_vs_F3"]
     interno = final_hp / base_i - 1
     confirma = cm["rel_ic95"][0] > 0
-    F["espejismo"] = G.espejismo([("Donde se eligieron", f"días {vent[0][1][0]}–{vent[-1][1][1]}", interno, G.NARANJA),
+    F["espejismo"] = G.espejismo([("En validación", f"días {vent[0][1][0]}–{vent[-1][1][1]}, donde se eligieron", interno, G.NARANJA),
                                   ("En días nuevos", f"días {conf[0]}–{conf[1]}, que la búsqueda no vio", cm["rel"], G.AZUL)])
     en_prueba = [pc[x][f"{mejor_k}_vs_F3"]["rel"] for x in P]
     cero = lambda v: "0%" if round(v * 100, 1) == 0 else pct(v, d=1)  # noqa: E731
     s["espejismo"] = pagina(
-        (f"Las variables nuevas ganaban {pct(interno, False, 1)} donde se eligieron y perdían {pct(-cm['rel'], False, 1)} en días nuevos"
-         if cm["rel"] < 0 else f"Variables nuevas: {pct(interno, d=1)} donde se eligieron, {pct(cm['rel'], d=1)} en días nuevos"),
+        (f"Las variables nuevas mejoraban {pct(interno, False, 1)} en validación pero empeoraban {pct(-cm['rel'], False, 1)} "
+         "en días nuevos: no se adoptan"
+         if cm["rel"] < 0 and not confirma else f"Variables nuevas: {pct(interno, d=1)} en validación, {pct(cm['rel'], d=1)} en días nuevos"),
         _split(F["espejismo"],
                '<p class="sub">Sobreajuste a la validación</p>'
                f'<p>{PALABRA.get(len(cand_g), len(cand_g))} grupos de variables nuevas se eligieron y se midieron en los mismos días.</p>'
@@ -340,29 +373,31 @@ def _construir():
     F["cola_noche"] = G.cola_noche(dia, filas_c, [("Modelo", dia["modelo_fraudes"], dia["modelo_usd"], G.AZUL),
                                                   ("Mejor regla", dia["regla_fraudes"], dia["regla_usd"], G.NARANJA)])
     s["despliegue"] = pagina(
-        f"En operación cambia una sola cosa: qué {cupo} pagos llegan cada noche al equipo",
+        f"Cada noche, el modelo entrega al equipo de riesgo la lista de {cupo} pagos a revisar",
         _split(F["cola_noche"],
-               '<dl class="ritmo"><dt>Cada noche</dt><dd>El modelo arma la cola; el equipo decide cada caso.</dd>'
-               f'<dt>Cada semana</dt><dd>Reentrenar con los pagos de más de {margen} días, que ya tienen etiqueta, '
-               'y vigilar los dólares por revisión.</dd>'
-               '<dt>Primer mes</dt><dd>Piloto con días al azar: la cola actual o la del modelo.</dd>'
-               '<dt>Respaldo</dt><dd>Si en dos semanas detiene menos que la regla, se vuelve a ella.</dd></dl>',
+               f'<dl class="ritmo"><dt>Cada noche</dt><dd>El modelo ordena los pagos del día; el equipo revisa los primeros {cupo}.</dd>'
+               f'<dt>Cada semana</dt><dd>Se reentrena con los pagos de más de {margen} días, que ya tienen etiqueta.</dd>'
+               '<dt>Primer mes</dt><dd>Piloto: en días elegidos al azar se usa la lista actual o la del modelo, y se compara lo recuperado.</dd>'
+               '<dt>Respaldo</dt><dd>Si dos semanas seguidas detiene menos que la regla, se vuelve a la regla.</dd></dl>',
                "split ancha fill"),
         fase=FASE[5])
 
     # Cierre: la recomendación, con el fraude detenido acumulado noche a noche en la prueba
-    F["acumulado"] = G.acumulado(dias_p, [("Modelo", [float(r[FINAL]) for r in pdias], G.AZUL),
-                                          ("Mejor regla", [float(r[REGLA]) for r in pdias], G.NARANJA)], R["P2"]["dias"][0], gana_dias)
+    azar = [cupo / PJ["dias"][str(d)][0] * PJ["dias"][str(d)][1] for d in dias_p]  # revisar 60 al azar: lo esperado de cada día
+    F["acumulado"] = G.acumulado(dias_p, ("Modelo", [float(r[FINAL]) for r in pdias], G.AZUL),
+                                 ("Mejor regla", [float(r[REGLA]) for r in pdias], G.NARANJA),
+                                 [("Logística", [float(r[LOGIT]) for r in pdias], G.VERDE, False), ("Revisar al azar", azar, G.GRIS_MEDIO, True)],
+                                 R["P2"]["dias"][0], gana_dias)
     s["cierre"] = pagina(
-        f"Ordenar la cola por fraude esperado: {mil(extra)} mil USD más en dos meses, con el mismo equipo",
+        f"Recomendamos adoptar el modelo: {mil(extra)} mil USD más de fraude detenido en dos meses, con el mismo equipo",
         _split(F["acumulado"],
                '<ol class="pasos">'
                f'<li><b>Adoptar el modelo con el cupo actual</b><span>Desde la próxima noche, con el mismo equipo y las mismas {cupo} revisiones.'
                '</span></li>'
-               '<li><b>Confirmarlo con un piloto de un mes</b><span>Días al azar con la cola actual o la del modelo, para medir el efectivo '
-               'recuperado.</span></li>'
+               '<li><b>Confirmarlo con un piloto de un mes</b><span>En días elegidos al azar se usa la lista actual o la del modelo, '
+               'para medir el efectivo recuperado.</span></li>'
                f'<li><b>Medir lo que cuesta una revisión</b><span>Si cuesta 10 USD, revisar cientos de pagos al día deja '
-               f'{mil(m10["neto_prueba"] - m10["neto_60"], True)} mil USD más de neto.</span></li></ol>',
+               f'{mil(m10["neto_prueba"] - m10["neto_60"])} mil USD más de neto.</span></li></ol>',
                "split ancha fill"),
         fase="Recomendación")
 
@@ -651,8 +686,9 @@ def _construir():
     # CRISP-DM
     fases = (("Negocio", "Decisión diaria con cupo fijo, dólares por celda y costo de revisar",
               "Matriz de confusión en dólares, t*&nbsp;=&nbsp;C&nbsp;/&nbsp;LTV, curva de beneficio", ("decision", "matriz", "beneficio", "costo")),
-             ("Datos", "182 días, concentración del dinero, faltantes y etiqueta propagada", "Análisis exploratorio, calidad de datos",
-              ("deciles", "observado", "calidad")),
+             ("Datos", "182 días: fraude contra legítimo por variable, concentración del dinero, faltantes y etiqueta propagada",
+              "Análisis exploratorio: matriz de dispersión y distribuciones por clase; calidad de datos",
+              ("eda_matriz", "eda_clases", "deciles", "observado", "calidad")),
              ("Preparación", "Historial previo por tarjeta y cliente; matriz de diseño ajustada por bloque",
               "Ingeniería de variables, RFM, cuantiles, one-hot con mínimo, frecuencia, indicadores de faltante, controles de fuga",
               ("cliente", "catalogo", "candados", "ablacion")),
@@ -826,8 +862,11 @@ CSS = r"""
 .tabla.crisp { font-size: 22px; }
 .tabla.crisp th, .tabla.crisp td { padding: 9px 22px 9px 0; }
 .tabla.crisp tbody th { font-size: 24px; width: 15%; }
-/* Decisión: franja de tres datos bajo el árbol */
-.clock-line.tres { grid-template-columns: repeat(3, 1fr); }
+/* Decisión: el árbol y lo que cuesta el fraude, lado a lado */
+.split.dos { grid-template-columns: minmax(0, 1040fr) minmax(0, 600fr); gap: 72px; }
+/* Datos: la matriz de dispersión y tres hallazgos */
+.split.matriz { grid-template-columns: minmax(0, 790fr) minmax(0, 700fr); gap: 96px; }
+svg .tick { font: 400 18px var(--mono); fill: var(--muted); }
 /* Despliegue y cierre: gráfica a la izquierda; ritmo de operación o pasos a la derecha */
 .split.ancha { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 80px; }
 .ritmo { margin: 0; }
