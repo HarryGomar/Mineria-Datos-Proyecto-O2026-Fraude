@@ -63,6 +63,7 @@ Python 3.12.
 pip install -e ".[entregables]"
 python scripts/00_descargar.py        # descarga OpenML 46858 (78 MB) y verifica la huella
 python scripts/01_exploracion.py      # días 1-120
+python scripts/01b_eda.py             # días 1-120: análisis exploratorio de la presentación
 python scripts/02_desarrollo.py       # torneo de desarrollo y selección
 python scripts/03_prueba.py           # prueba congelada: verifica las huellas del protocolo
 python scripts/04_resumen.py
