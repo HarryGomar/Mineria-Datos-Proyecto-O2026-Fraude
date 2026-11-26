@@ -25,7 +25,7 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 | Despliegue | Cola nocturna, reentrenamiento semanal, piloto aleatorio, monitoreo y respaldo | 7 | 6.1 | 15, 16, 17 |
 | Mantenimiento | Monitoreo semanal con respaldo (dinero contra la regla, precisión, deriva PSI), corrido sobre la prueba; búsqueda de variables con validación cruzada temporal y bloque de confirmación | 6, 7 | 3.3, 6.2 | 14, 16, A17, A18 |
 | Limitaciones | Dinero etiquetado, práctica desconocida, etiqueta propagada, margen de 30 días | 8 | 7 | A10, A11 |
-| Reproducibilidad | Datos públicos con huella SHA-256, protocolo con huellas del código, scripts numerados; el cuaderno reentrena el modelo final y reproduce sus puntajes | 10 | 0, 2.1, 4.2 y todo el cuaderno | 9, A2, A13 |
+| Reproducibilidad | Datos públicos con huella SHA-256, protocolo con huellas del código, scripts numerados; el cuaderno vuelve a entrenar el modelo final y recalcula la evaluación desde el puntaje de cada pago | 10 | 0, 2.1, 4.2 y todo el cuaderno | 9, A2, A13 |
 
 ## CRISP-DM
 

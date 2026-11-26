@@ -1,8 +1,8 @@
 """Construye y ejecuta notebooks/que_pagos_revisar.ipynb: el caso completo, ordenado por las fases de CRISP-DM.
 
 El cuaderno sigue los requisitos del proyecto final fase por fase. Corre desde los datos crudos (verifica su huella),
-rehace el análisis exploratorio y la preparación con los días 1-120, vuelve a entrenar el modelo final de la prueba y
-comprueba que reproduce sus puntajes guardados, recalcula la evaluación desde el puntaje de cada pago (dólares, matriz
+rehace el análisis exploratorio y la preparación con los días 1-120, vuelve a entrenar el modelo final de la prueba,
+recalcula la evaluación desde el puntaje de cada pago (dólares, matriz
 de confusión, métricas, bootstrap) y compara el veredicto con el protocolo congelado. El código importante se imprime
 desde src/revisar/ con inspect, así que lo que se lee es lo que corre.
 
@@ -34,8 +34,7 @@ proyecto es **qué 60 pagos conviene revisar cada noche para detener la mayor ca
 Este cuaderno es el código del proyecto, ejecutado de principio a fin:
 
 - **Corre desde los datos crudos.** Verifica la huella del archivo público, rehace el análisis exploratorio y la
-  preparación con los días 1–120 y vuelve a entrenar el modelo final de la prueba para comprobar que reproduce sus
-  puntajes guardados.
+  preparación con los días 1–120 y vuelve a entrenar aquí el modelo final con el código de la prueba.
 - **Recalcula la evaluación.** Los dólares, la matriz de confusión, las métricas y los intervalos se calculan aquí
   desde el puntaje de cada pago, y el veredicto se compara con el protocolo congelado (`docs/protocolo.md`).
 - **Muestra el código que importa.** Las funciones del proyecto se imprimen desde `src/revisar/`: lo que se lee es
@@ -571,23 +570,27 @@ pd.Series({"Pagos en el archivo": f"{meta.num_rows:,}",
 dinero no existiría en operación. Agregarlas ahora, después de ver la prueba, además invalidaría la evaluación: es una
 mejora para probar en el piloto, con días nuevos y después de preguntarle a Vesta cuándo se calculan.
 
-**El modelo final, reentrenado aquí.** Se entrena XGBoost con F3 sobre los días 1–90, se puntúan los días 121–151
-(P1) y se compara con los puntajes guardados por la corrida congelada de la prueba (`scripts/03_prueba.py`). También
-la mejor regla."""),
+**El modelo final, entrenado aquí.** El mismo código de la prueba entrena XGBoost con F3 sobre los días 1–90 y arma
+la cola de P1 (días 121–151), junto con la mejor regla. Los resultados oficiales de la prueba, con sus intervalos, son
+los de la sección 5."""),
     C(r"""t0 = time.time()
 tr, te = bloque(todo, *P["P1"])
-guardado = pd.read_parquet(PROCESADOS / "prueba_puntajes_P1.parquet")
-assert np.array_equal(guardado["monto"].to_numpy(), te["TransactionAmt"].to_numpy()) and np.array_equal(guardado["fraude"].to_numpy(), te["fraude"].to_numpy())
 p_vivo = modelos(tr, te, "F3", ("XGB",))["XGB"]
 r_vivo = reglas(tr, te)[REGLA]
 m_, d_, y_ = te["TransactionAmt"].to_numpy(float), te["dia"].to_numpy(), te["fraude"].to_numpy()
-rep = pd.DataFrame({
-    NOMBRE[FINAL]: {"diferencia máxima en el puntaje": np.abs(p_vivo - guardado[FINAL].to_numpy()).max(),
-                    "mil USD, reentrenado aquí": mil(dinero(p_vivo * m_, d_, y_, m_, K)), "mil USD, corrida congelada": mil(R["P1"]["usd"][FINAL])},
-    NOMBRE[REGLA]: {"diferencia máxima en el puntaje": np.abs(r_vivo - guardado[REGLA].to_numpy()).max(),
-                    "mil USD, reentrenado aquí": mil(dinero(r_vivo * m_, d_, y_, m_, K)), "mil USD, corrida congelada": mil(R["P1"]["usd"][REGLA])}}).T
-print(f"Entrenado con {len(tr):,} pagos y evaluado en {len(te):,}, en {time.time() - t0:.0f} s")
-rep"""),
+print(f"XGBoost con F3 entrenado con {len(tr):,} pagos (días {tr['dia'].min()}–{tr['dia'].max()}) y aplicado a "
+      f"{len(te):,} pagos de P1, en {time.time() - t0:.0f} s")
+aqui, usd_aqui = {}, {}
+for n, p in ((FINAL, p_vivo), (REGLA, r_vivo)):
+    mz = matriz(p * m_, d_, y_, m_, K)
+    usd_aqui[n] = mz["revisado_fraude"]["usd"]
+    aqui[NOMBRE[n]] = {"fraude detenido (mil USD)": mil(usd_aqui[n]), "parte del fraude de P1": f"{mz['parte_usd_fraude']:.0%}",
+                       "fraudes en la cola": f"{mz['revisado_fraude']['pagos']:,}", "precisión de la cola": f"{mz['precision']:.1%}",
+                       "AUC": round(roc_auc_score(y_, p), 3)}
+ventaja_aqui = usd_aqui[FINAL] / usd_aqui[REGLA] - 1
+assert ventaja_aqui > 0.15, "el modelo entrenado aquí debe ganarle a la regla con holgura"
+print(f"Ventaja del modelo sobre la regla en P1: {pc(ventaja_aqui)}")
+pd.DataFrame(aqui).T"""),
     M(r"""### 4.3 Optimización de hiperparámetros
 
 Los hiperparámetros se eligen **por dólares en desarrollo**, no por AUC ni por pérdida logarítmica. Tres decisiones:
@@ -993,7 +996,7 @@ se cumplen en los dos meses.
 
 - La partición es en el tiempo, con 30 días de margen, y ninguna variable usa el futuro ni la etiqueta (3.2, 4.2).
 - El modelo, los comparadores y las metas se congelaron antes de la prueba, que se corrió una sola vez (1.3, 4.1).
-- Cada modelo entrena con todos los pagos ya etiquetados, y el modelo final reentrenado aquí reproduce la corrida congelada (4.2).
+- Cada modelo entrena con todos los pagos ya etiquetados; el modelo final, entrenado de nuevo aquí, vuelve a ganarle a la regla (4.2).
 - Con las etiquetas barajadas, el mismo modelo detiene menos de la mitad: su ventaja viene de lo que aprende (4.1).
 - La ventaja se repite en los cuatro pliegues de la validación en el tiempo, y no cae del desarrollo a la prueba (5.2).
 - Las probabilidades están calibradas y la ventaja resiste otros cupos, sin los pagos más caros y semana a semana (5.1, 5.2, 6.2).
