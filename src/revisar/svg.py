@@ -1031,6 +1031,65 @@ def espejismo(filas, dominio=(-.08, .08)):
     return svg(1080, 630, "Cambio en el fraude detenido con las variables nuevas: donde se eligieron y en días que la búsqueda no vio.", el)
 
 
+# Preparación: cómo se arma el cliente, qué se lee de su historial y qué revela
+def cliente_armado(campos, clientes, tarjetas, cats, promedio, extra):
+    """campos: (nombre, columna); cats: (nombre corto, tasa, pagos) por tiempo desde el pago anterior;
+    extra: USD de fraude detenido de más en desarrollo con el historial del cliente."""
+    el = []
+    for x, titulo, sub in ((0, "1 · Armamos al cliente", "Los datos no traen un identificador"),
+                           (480, "2 · Leemos su historial", "Un pago de ejemplo: solo cuentan los anteriores"),
+                           (1160, "3 · Lo que revela", "Fraude según el tiempo desde su pago anterior")):
+        el += [texto(x, 30, titulo, "heading"), texto(x, 66, sub, "micro")]
+
+    # 1 · tres campos forman la llave del cliente
+    for i, (nombre, columna) in enumerate(campos):
+        y = 100 + i * 86
+        el += [_caja(0, y, 400, 70, HIELO), texto(28, y + 45, nombre, "label-strong"), texto(372, y + 44, columna, "axis", ancla="end")]
+    el += [_flecha([(200, 358), (200, 400)]),
+           _caja(0, 406, 400, 144, AZUL), texto(28, 466, f"{clientes:,} clientes", "data", "#fff"),
+           texto(28, 512, f"a partir de {tarjetas:,} tarjetas", "label", "#d6e7f5")]
+
+    # 2 · el historial del ejemplo, en un eje comprimido para que el pago de hace minutos no se encime con el de hoy
+    X = lambda d: 490 + (math.copysign(abs(d) ** .4, d) + 9.9 ** .4) * 430 / 9.9 ** .4  # noqa: E731
+    xh, ya = X(0), 200
+    el += [_caja(xh + 32, 92, 1080 - xh - 32, 150, HIELO, 10), texto((xh + 32 + 1080) / 2, 140, "futuro:", "micro", ancla="middle"),
+           texto((xh + 32 + 1080) / 2, 168, "no se usa", "micro", ancla="middle"), linea(480, ya, 1080, ya, "#a5aebc", 2)]
+    el += [punto(X(d), ya, 9, AZUL_MEDIO) for d, _ in PAGOS_PREVIOS]
+    d_ult = PAGOS_PREVIOS[-1][0]
+    minutos = round(-d_ult * 24 * 60)
+    el += [punto(xh, ya, 14, AZUL), linea(X(d_ult), ya - 30, xh, ya - 30, AZUL, 2), linea(X(d_ult), ya - 38, X(d_ult), ya - 22, AZUL, 2),
+           linea(xh, ya - 38, xh, ya - 22, AZUL, 2), texto((X(d_ult) + xh) / 2, ya - 48, f"{minutos} min", "label-strong", AZUL, "middle")]
+    for d, t in ((-7, "hace 7 días"), (-1, "hace 1 día")):
+        el.append(texto(X(d), ya + 40, t, "micro", ancla="middle"))
+    el.append(texto(xh, ya + 40, "hoy", "label-strong", AZUL, "middle"))
+    media = sum(m for _, m in PAGOS_PREVIOS) / len(PAGOS_PREVIOS)
+    medidas = (("Pagos anteriores", f"{len(PAGOS_PREVIOS)}"),
+               ("En el último día", f"{sum(1 for d, _ in PAGOS_PREVIOS if d >= -1)}"),
+               ("En la última semana", f"{sum(1 for d, _ in PAGOS_PREVIOS if d >= -7)}"),
+               ("Desde su pago anterior", f"{minutos} min"),
+               ("Monto contra su promedio", f"×{PAGO_HOY / media:.1f}"))
+    for i, (nombre, valor) in enumerate(medidas):
+        y = 312 + i * 50
+        clave = nombre.startswith("Desde")
+        el += [texto(480, y, nombre, "label-strong" if clave else "label", AZUL if clave else None),
+               texto(1080, y, valor, "label-strong", AZUL if clave else NEGRO, "end"), linea(480, y + 18, 1080, y + 18)]
+
+    # 3 · la tasa de fraude por tiempo desde el pago anterior, y el dinero que agrega
+    xb = 1316
+    Xb = escala((0, .07), (xb, xb + 250))  # los valores van en su propia columna, lejos de la línea del promedio
+    el += [linea(Xb(promedio), 92, Xb(promedio), 380, NARANJA, 3, True),
+           texto(Xb(promedio), 408, f"promedio {promedio * 100:.1f}%", "micro", NARANJA, "middle")]
+    for i, (nombre, tasa, _) in enumerate(cats):
+        y = 100 + i * 56
+        alto = tasa > promedio
+        color = AZUL if alto else GRIS_MEDIO
+        el += [texto(1160, y + 27, nombre, "label-strong" if alto else "label"), rect(xb, y, Xb(tasa) - xb, 36, color),
+               texto(1664, y + 28, f"{tasa * 100:.1f}%", "label-strong", color, "end")]
+    el += [linea(1160, 440, 1664, 440), texto(1160, 512, f"{mil(extra, True)} mil USD", "chart-big", AZUL),
+           texto(1160, 552, "más fraude detenido en desarrollo", "label"), texto(1160, 584, "al sumar el historial del cliente", "micro")]
+    return svg(1664, 596, "Cómo se arma el cliente, qué se mide de su historial y la tasa de fraude según el tiempo desde su pago anterior.", el)
+
+
 # Despliegue: la cola que recibe el equipo una noche, ordenada por fraude esperado
 def cola_noche(dia, filas, colas):
     """filas: (lugar, monto, probabilidad, fraude) de la cola del modelo, en orden; None marca los renglones omitidos.

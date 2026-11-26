@@ -197,14 +197,14 @@ def _construir():
     capas = [total(f"XGB|{c}") for c in ("F1", "F2", "F3", "F4")]
     veces = cats[0][1] / un["tasa_fraude"]
     assert 1.75 < veces < 2.05, veces
-    F["cliente"] = G.cliente(cats, un["tasa_fraude"])
+    F["cliente"] = G.cliente(cats, un["tasa_fraude"])  # el reporte la usa
+    cortos = ("< 1 hora", "1–24 horas", "1–7 días", "> 7 días", "Primer pago")
+    F["cliente_armado"] = G.cliente_armado((("Tarjeta", "card1"), ("Dirección", "addr1"), ("Fecha de alta", "día − D1")),
+                                           ck["clientes"], ck["tarjetas_card1"], [(c, t, n) for c, (_, t, n) in zip(cortos, cats)],
+                                           un["tasa_fraude"], capas[2] - capas[1])
     s["cliente"] = pagina(
         "Reconstruimos al cliente: si volvió a pagar en menos de una hora, el fraude casi se duplica",
-        _split(F["cliente"],
-               f'<p class="big">{mil(capas[2] - capas[1], True)} <span>mil USD</span></p>'
-               '<p class="sub">más fraude detenido en desarrollo con el historial del cliente</p>'
-               '<div class="rule"><p>Los datos no traen cliente: lo armamos con tarjeta, dirección y fecha de alta (<code>D1</code>). '
-               'Su historial usa solo pagos anteriores.</p></div>'),
+        f'<figure class="fill">{F["cliente_armado"]}</figure>',
         fase=FASE[2])
 
     # 4 · Modelado: diseño de la prueba

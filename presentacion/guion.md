@@ -35,9 +35,9 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 ## 6 · Reconstruimos al cliente: si volvió a pagar en menos de una hora, el fraude casi se duplica
 
-**Ver.** Tasa de fraude según el tiempo desde el pago anterior del mismo cliente; a la derecha, lo que agrega su historial.
+**Ver.** Tres pasos: los tres campos que forman al cliente; el historial de un pago de ejemplo, solo hacia atrás, con sus cinco medidas; y la tasa de fraude según el tiempo desde el pago anterior, con lo que agrega en dólares.
 
-**Decir.** Tercera fase, la preparación. Los datos están anonimizados y no traen un identificador de cliente. Pero la columna D1 cuenta los días desde el alta de la tarjeta; al restarla del día del pago sale una fecha de alta fija. Tarjeta, dirección y fecha de alta identifican al cliente. Con eso medimos su historial: recencia, frecuencia y monto, como en RFM. Si el mismo cliente pagó hace menos de una hora, 6.8% de los pagos es fraude, casi el doble del promedio. Todas las medidas usan solo pagos anteriores y ninguna etiqueta, para que no se cuele información del futuro. Con este historial, el mismo modelo detiene 21 mil dólares más en desarrollo.
+**Decir.** Tercera fase, la preparación. Los datos están anonimizados y no traen un identificador de cliente. Pero la columna D1 cuenta los días desde el alta de la tarjeta; al restarla del día del pago sale una fecha de alta fija. Tarjeta, dirección y fecha de alta identifican al cliente: 12 mil números de tarjeta se vuelven 165 mil clientes. Para cada pago medimos su historial, recencia, frecuencia y monto, como en RFM: cuántos pagos lleva, cuántos en el último día y en la última semana, cuánto pasó desde el anterior y cómo se compara el monto con su promedio. En el ejemplo, el cliente pagó hace 43 minutos y hoy paga 3.4 veces su promedio. Todas las medidas usan solo pagos anteriores y ninguna etiqueta, para que no se cuele información del futuro. Lo que revela: si el mismo cliente pagó hace menos de una hora, 6.8% de los pagos es fraude, casi el doble del promedio. Con este historial, el mismo modelo detiene 21 mil dólares más en desarrollo.
 
 ## 7 · Se decide con el pasado y se prueba una sola vez con el futuro
 
