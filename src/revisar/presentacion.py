@@ -133,6 +133,10 @@ def _construir():
 
     # Resumen: el valor del modelo en una gráfica
     extra = tot(FINAL) - tot(REGLA)
+    pdias = _csv("prueba_dias.csv")
+    dias_p = [int(r["dia"]) for r in pdias]
+    gana_dias = sum(float(r[FINAL]) > float(r[REGLA]) for r in pdias)
+    assert all(abs(sum(float(r[k]) for r in pdias) - tot(k)) < 1 for k in (FINAL, REGLA))
     F["resumen"] = G.resumen([("Práctica actual: la mejor regla", tot(REGLA), G.NARANJA), ("Logística regularizada", tot(LOGIT), G.VERDE),
                               ("Modelo: XGBoost, probabilidad × monto", tot(FINAL), G.AZUL)])
     gana_meses = all(cr[x]["rel_ic95"][0] > 0 for x in P)
@@ -142,7 +146,8 @@ def _construir():
                f'<p class="big">{mil(extra, True)} <span>mil USD</span></p>'
                '<p class="sub">más fraude detenido en los dos meses de prueba</p>'
                '<div class="rule"><p>Mismo equipo, mismas revisiones: solo cambia el orden de la cola.</p>'
-               + (f'<p>Gana en cada mes: {pct(cr["P1"]["rel"])} y {pct(cr["P2"]["rel"])}.</p>' if gana_meses else "") + "</div>"),
+               + (f'<p>Gana en los dos meses, {pct(cr["P1"]["rel"])} y {pct(cr["P2"]["rel"])}, y en {gana_dias} de los {len(dias_p)} días.</p>'
+                  if gana_meses else "") + "</div>"),
         fase="Resumen")
 
     # 1 · Negocio: la decisión
@@ -328,24 +333,38 @@ def _construir():
                '<p class="sub">Neto = fraude detenido − costo × revisiones</p>'),
         fase=FASE[5])
 
-    # 6 · Despliegue
-    F["operacion"] = G.operacion(pagos_dia, cupo, margen)
+    # 6 · Despliegue: lo que recibe el equipo una noche (el día típico de la portada) y el ritmo de operación
+    cola = sorted((p for p in pts if p[3]), key=lambda p: -p[0] * p[1])
+    assert len(cola) == cupo and sum(p[2] for p in cola) == dia["modelo_fraudes"]
+    filas_c = [(i + 1, p[1], p[0], p[2]) for i, p in enumerate(cola[:6])] + [None, (cupo, cola[-1][1], cola[-1][0], cola[-1][2])]
+    F["cola_noche"] = G.cola_noche(dia, filas_c, [("Modelo", dia["modelo_fraudes"], dia["modelo_usd"], G.AZUL),
+                                                  ("Mejor regla", dia["regla_fraudes"], dia["regla_usd"], G.NARANJA)])
     s["despliegue"] = pagina(
-        "Despliegue: el mismo equipo y la misma cola; cambia el orden",
-        f'<figure class="fill">{F["operacion"]}</figure>',
+        f"En operación cambia una sola cosa: qué {cupo} pagos llegan cada noche al equipo",
+        _split(F["cola_noche"],
+               '<dl class="ritmo"><dt>Cada noche</dt><dd>El modelo arma la cola; el equipo decide cada caso.</dd>'
+               f'<dt>Cada semana</dt><dd>Reentrenar con los pagos de más de {margen} días, que ya tienen etiqueta, '
+               'y vigilar los dólares por revisión.</dd>'
+               '<dt>Primer mes</dt><dd>Piloto con días al azar: la cola actual o la del modelo.</dd>'
+               '<dt>Respaldo</dt><dd>Si en dos semanas detiene menos que la regla, se vuelve a ella.</dd></dl>',
+               "split ancha fill"),
         fase=FASE[5])
 
-    # Cierre: tres recomendaciones, cada una con su cifra
-    s["cierre"] = (
-        '<section class="slide cierre" data-title="Recomendación"><p class="kicker">Recomendación</p>'
-        '<h2>Ordenar la cola de revisión por fraude esperado</h2><div class="recos">'
-        f'<div><p class="cifra">{mil(extra, True)}<span> mil USD</span></p><h3>Adoptar el modelo con el cupo actual</h3>'
-        f'<p>{pct(extra / tot(REGLA), False)} más fraude detenido en dos meses, con el mismo equipo y las mismas {cupo} revisiones.</p></div>'
-        '<div><p class="cifra">1<span> mes</span></p><h3>Confirmarlo con un piloto</h3>'
-        '<p>Días al azar con la cola actual o la del modelo, para medir el efectivo recuperado.</p></div>'
-        f'<div><p class="cifra">{mil(m10["neto_prueba"] - m10["neto_60"], True)}<span> mil USD</span></p><h3>Ajustar el cupo al costo de revisar</h3>'
-        '<p>Más neto si una revisión cuesta 10 USD y se revisan cientos de pagos al día.</p></div>'
-        '</div></section>')
+    # Cierre: la recomendación, con el fraude detenido acumulado noche a noche en la prueba
+    F["acumulado"] = G.acumulado(dias_p, [("Modelo", [float(r[FINAL]) for r in pdias], G.AZUL),
+                                          ("Mejor regla", [float(r[REGLA]) for r in pdias], G.NARANJA)], R["P2"]["dias"][0], gana_dias)
+    s["cierre"] = pagina(
+        f"Ordenar la cola por fraude esperado: {mil(extra)} mil USD más en dos meses, con el mismo equipo",
+        _split(F["acumulado"],
+               '<ol class="pasos">'
+               f'<li><b>Adoptar el modelo con el cupo actual</b><span>Desde la próxima noche, con el mismo equipo y las mismas {cupo} revisiones.'
+               '</span></li>'
+               '<li><b>Confirmarlo con un piloto de un mes</b><span>Días al azar con la cola actual o la del modelo, para medir el efectivo '
+               'recuperado.</span></li>'
+               f'<li><b>Medir lo que cuesta una revisión</b><span>Si cuesta 10 USD, revisar cientos de pagos al día deja '
+               f'{mil(m10["neto_prueba"] - m10["neto_60"], True)} mil USD más de neto.</span></li></ol>',
+               "split ancha fill"),
+        fase="Recomendación")
 
     # ── Apéndice ──────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -809,13 +828,17 @@ CSS = r"""
 .tabla.crisp tbody th { font-size: 24px; width: 15%; }
 /* Decisión: franja de tres datos bajo el árbol */
 .clock-line.tres { grid-template-columns: repeat(3, 1fr); }
-/* Cierre: tres recomendaciones, cada una con su cifra */
-.cierre { justify-content: center; }
-.cierre h2 { font-size: 76px; }
-.recos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-top: 40px; }
-.recos > div { background: #f3f6f9; border-radius: 18px; padding: 46px 46px 50px; }
-.recos .cifra { margin: 0; color: var(--blue); font: 600 96px/1 var(--display); letter-spacing: -.045em; white-space: nowrap; }
-.recos .cifra span { font: 500 42px var(--display); color: var(--muted); letter-spacing: -.03em; }
-.recos h3 { margin: 34px 0 16px; font: 600 38px/1.15 var(--display); letter-spacing: -.02em; color: var(--ink); }
-.recos p:not(.cifra) { margin: 0; font: 400 28px/1.38 var(--sans); color: var(--text); }
+/* Despliegue y cierre: gráfica a la izquierda; ritmo de operación o pasos a la derecha */
+.split.ancha { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 80px; }
+.ritmo { margin: 0; }
+.ritmo dt { font: 600 31px/1.2 var(--display); letter-spacing: -.015em; color: var(--blue); }
+.ritmo dd { margin: 8px 0 34px; font: 400 26px/1.36 var(--sans); color: var(--text); }
+.ritmo dd:last-child { margin-bottom: 0; }
+.pasos { margin: 0; padding: 0; list-style: none; counter-reset: paso; }
+.pasos li { display: grid; grid-template-columns: 64px minmax(0, 1fr); margin-bottom: 46px; }
+.pasos li:last-child { margin-bottom: 0; }
+.pasos li::before { counter-increment: paso; content: counter(paso); grid-row: 1 / span 2; color: var(--blue);
+  font: 600 56px/.95 var(--display); letter-spacing: -.04em; }
+.pasos b { font: 600 31px/1.2 var(--display); letter-spacing: -.015em; color: var(--ink); }
+.pasos span { margin-top: 10px; font: 400 26px/1.36 var(--sans); color: var(--text); }
 """

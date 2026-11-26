@@ -1031,31 +1031,79 @@ def espejismo(filas, dominio=(-.08, .08)):
     return svg(1080, 630, "Cambio en el fraude detenido con las variables nuevas: donde se eligieron y en días que la búsqueda no vio.", el)
 
 
-# Despliegue: la cola de cada noche y el reentrenamiento de cada semana
-def operacion(pagos, cupo, margen):
-    w, h, hueco, y0 = 352, 130, 64, 40
-    xs = [i * (w + hueco) for i in range(4)]
-    cajas = [("Pagos del día", f"≈{pagos:,} cada noche", HIELO, NEGRO, GRIS),
-             ("El modelo puntúa", "probabilidad × monto", AZUL, "#fff", "#d6e7f5"),
-             (f"Cola de {cupo}", "mayor fraude esperado", AZUL_PALIDO, AZUL, GRIS),
-             ("Equipo de riesgo", "revisa y frena el fraude", HIELO, NEGRO, GRIS)]
-    el = []
-    for x, (titulo, sub, fondo, tinta, tinta_sub) in zip(xs, cajas):
-        el += [_caja(x, y0, w, h, fondo), texto(x + 32, y0 + 58, titulo, "label-strong", tinta), texto(x + 32, y0 + 98, sub, "label", tinta_sub)]
-    for x in xs[:-1]:
-        el.append(_flecha([(x + w + 10, y0 + h / 2), (x + w + hueco - 10, y0 + h / 2)]))
-    yl = y0 + h + 110
-    el += [_flecha([(xs[3] + w / 2, y0 + h + 10), (xs[3] + w / 2, yl), (xs[1] + w / 2, yl), (xs[1] + w / 2, y0 + h + 12)]),
-           texto((xs[1] + xs[3] + w) / 2, yl + 44, f"Cada semana: reentrenar con los pagos de más de {margen} días, que ya tienen etiqueta",
-                 "label", ancla="middle")]
-    yb, mitad = yl + 100, (xs[3] + w - 40) / 2
-    notas = [("Primer mes: piloto", NEGRO, ("Días al azar con la cola actual o la del modelo,", "para medir el efectivo recuperado.")),
-             ("Respaldo", NARANJA, ("Si el modelo queda dos semanas bajo la regla,", "se vuelve a ella."))]
-    for i, (titulo, color, renglones) in enumerate(notas):
-        x = i * (mitad + 40)
-        el += [_caja(x, yb, mitad, 170, HIELO if i == 0 else NARANJA_PALIDO), texto(x + 32, yb + 56, titulo, "label-strong", color)]
-        el += [texto(x + 32, yb + 100 + j * 34, r, "label", GRIS) for j, r in enumerate(renglones)]
-    return svg(xs[3] + w, yb + 180, "Despliegue: cada noche el modelo ordena la cola de 60; cada semana se reentrena.", el)
+# Despliegue: la cola que recibe el equipo una noche, ordenada por fraude esperado
+def cola_noche(dia, filas, colas):
+    """filas: (lugar, monto, probabilidad, fraude) de la cola del modelo, en orden; None marca los renglones omitidos.
+    colas: (nombre, fraudes, usd, color) de cada cola esa misma noche."""
+    xl, xm, xp, xe, xb, xr, ancho_b = 36, 236, 430, 556, 576, 790, 170
+    tope = max(f[1] * f[2] for f in filas if f)
+    yh = 112
+    el = [texto(0, 30, f"La cola de la noche del día {dia['dia']}", "heading"),
+          texto(0, 66, f"Los 60 de {dia['pagos']:,} pagos con más fraude esperado", "micro"),
+          texto(xl, yh, "#", "micro", ancla="end"), texto(xm, yh, "Monto, USD", "micro", ancla="end"),
+          texto(xp, yh, "Probabilidad", "micro", ancla="end"), texto(xe - 90, yh, "Fraude esperado, USD", "micro"),
+          texto(xr, yh, "A los 30 días", "micro"), linea(0, yh + 18, 960, yh + 18, "#a5aebc", 2)]
+    y = yh + 44
+    for i, f in enumerate(filas):
+        if f is None:
+            omitidos = filas[i + 1][0] - filas[i - 1][0] - 1
+            el += [texto(xl, y - 6, "⋮", "label", GRIS, "end"), texto(xl + 28, y - 6, f"{omitidos} pagos más", "micro")]
+            y += 40
+            continue
+        lugar, m, p, fraude = f
+        e = m * p
+        el += [texto(xl, y, lugar, "axis", ancla="end"), texto(xm, y, f"{m:,.0f}", "label", ancla="end"),
+               texto(xp, y, f"{p:.0%}", "label", ancla="end"), texto(xe, y, f"{e:,.0f}", "label-strong", ancla="end"),
+               rect(xb, y - 20, ancho_b * e / tope, 22, AZUL_MEDIO),
+               punto(xr + 9, y - 8, 9, AZUL if fraude else GRIS_CLARO, "none", 0),
+               texto(xr + 28, y, "fraude" if fraude else "legítimo", "label-strong" if fraude else "label", AZUL if fraude else GRIS)]
+        y += 44
+    y -= 20
+    el.append(linea(0, y, 960, y, "#a5aebc", 2))
+    y += 50
+    el.append(texto(0, y, f"Esa noche, con las mismas {filas[-1][0]} revisiones", "micro"))
+    mx = max(u for _, _, u, _ in colas)
+    for nombre, fraudes, usd, color in colas:
+        y += 18
+        w = 330 * usd / mx
+        el += [texto(0, y + 25, nombre, "label-strong", color), rect(190, y, w, 32, color),
+               texto(190 + w + 16, y + 26, f"{fraudes} fraudes · {usd:,.0f} USD", "label", color)]
+        y += 32
+    return svg(960, y + 8, f"La cola de 60 pagos que recibe el equipo la noche del día {dia['dia']}, con el resultado a los 30 días.", el)
+
+
+# Cierre: el fraude detenido se acumula noche a noche en los dos meses de prueba
+def acumulado(dias, series, inicio_mes2, gana):
+    """dias: días de prueba en orden; series: (nombre, [usd por día], color), primero el modelo y después la regla."""
+    acum = [(n, [sum(v[:i + 1]) for i in range(len(v))], c) for n, v, c in series]
+    tope = 450e3
+    assert max(a[-1] for _, a, _ in acum) < tope
+    X = escala((dias[0], dias[-1]), (100, 800))
+    Y = escala((0, tope), (560, 110))
+    el = [texto(0, 30, "Fraude detenido acumulado en la prueba, mil USD", "heading"),
+          texto(0, 66, f"El modelo detiene más que la regla en {gana} de los {len(dias)} días", "micro")]
+    for v in range(0, int(tope), 100_000):
+        el += [linea(100, Y(v), 800, Y(v), "#a5aebc" if v == 0 else LINEA, 2), texto(86, Y(v) + 7, mil(v), "axis", ancla="end")]
+    xm = X(inicio_mes2 - .5)
+    el += [linea(xm, 110, xm, 560, GRIS_CLARO, 2, True)]
+    for d in (dias[0], inicio_mes2, dias[-1]):
+        el.append(texto(X(d), 596, d, "axis", ancla="middle"))
+    el += [texto((X(dias[0]) + xm) / 2, 636, "Mes 1", "label", GRIS, "middle"), texto((xm + X(dias[-1])) / 2, 636, "Mes 2", "label", GRIS, "middle")]
+    (n_m, a_m, c_m), (n_r, a_r, c_r) = acum
+    el.append(trazo([(X(d), Y(v)) for d, v in zip(dias, a_m)] + [(X(d), Y(v)) for d, v in zip(dias[::-1], a_r[::-1])],
+                    "none", 0, AZUL_PALIDO, True))
+    for _, a, c in acum[::-1]:
+        el.append(trazo([(X(d), Y(v)) for d, v in zip(dias, a)], c, 5))
+    i_m, i_r = dias.index(141), dias.index(157)  # puntos donde la línea sube: la etiqueta no la toca
+    el += [texto(X(141) - 12, Y(a_m[i_m]) - 16, n_m, "label-strong", c_m, "end", halo=True),
+           texto(X(157) + 12, Y(a_r[i_r]) + 42, n_r, "label-strong", c_r, halo=True)]
+    xe, ym, yr = X(dias[-1]), Y(a_m[-1]), Y(a_r[-1])
+    el += [punto(xe, ym, 9, c_m), punto(xe, yr, 9, c_r),
+           texto(xe + 20, ym + 12, mil(a_m[-1]), "data", c_m), texto(xe + 20, yr + 12, mil(a_r[-1]), "data", c_r),
+           linea(902, ym, 902, yr, NEGRO, 2), linea(890, ym, 902, ym, NEGRO, 2), linea(890, yr, 902, yr, NEGRO, 2),
+           texto(920, (ym + yr) / 2 + 12, mil(a_m[-1] - a_r[-1], True), "chart-big", AZUL),
+           texto(922, (ym + yr) / 2 + 48, "mil USD", "micro")]
+    return svg(1080, 650, "Fraude detenido acumulado día a día en los dos meses de prueba, para el modelo y la regla.", el)
 
 
 # Capítulo 7 del curso · curva de aprendizaje con parada temprana

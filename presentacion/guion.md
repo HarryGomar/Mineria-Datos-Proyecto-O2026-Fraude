@@ -13,7 +13,7 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 **Ver.** Fraude detenido en los dos meses de prueba por la práctica actual, la logística y el modelo.
 
-**Decir.** Este es el resultado. En dos meses que apartamos hasta el final, la mejor regla, que representa la práctica actual, detiene 301 mil dólares de fraude. Una logística con la misma información, 372 mil. El modelo, 438 mil: 137 mil dólares más que la regla, 45% más, con exactamente las mismas revisiones. No hace falta más personal; solo cambia el orden de la cola. Y gana en cada mes por separado. El resto de la charla explica cómo llegamos aquí y por qué el resultado es creíble.
+**Decir.** Este es el resultado. En dos meses que apartamos hasta el final, la mejor regla, que representa la práctica actual, detiene 301 mil dólares de fraude. Una logística con la misma información, 372 mil. El modelo, 438 mil: 137 mil dólares más que la regla, 45% más, con exactamente las mismas revisiones. No hace falta más personal; solo cambia el orden de la cola. Y gana en cada mes por separado, y en 54 de los 62 días. El resto de la charla explica cómo llegamos aquí y por qué el resultado es creíble.
 
 ## 3 · Cada noche se revisan 60 de unos 2,800 pagos; un fraude que pasa se pierde completo
 
@@ -81,17 +81,17 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 **Decir.** Sexta fase, el despliegue, empieza por el tamaño del cupo. Si cada revisión cuesta, el neto es el fraude detenido menos el costo de revisar: es la curva de beneficio del curso. Con 10 dólares por revisión, el desarrollo elige 450 revisiones al día y el neto en la prueba sube 112 mil dólares. En la prueba la curva es casi plana entre 200 y 450 revisiones: lo que importa es pasar de decenas a cientos. Con 50 dólares, el mejor cupo es 66, casi el actual: el cupo de 60 solo es óptimo si revisar cuesta alrededor de 50 dólares. En los doce escenarios de costo que probamos, el modelo deja más neto que la regla y que la logística.
 
-## 14 · Despliegue: el mismo equipo y la misma cola; cambia el orden
+## 14 · En operación cambia una sola cosa: qué 60 pagos llegan cada noche al equipo
 
-**Ver.** El ciclo de operación: pagos del día, modelo, cola de 60 y equipo de riesgo; el reentrenamiento semanal; abajo, el piloto y el respaldo.
+**Ver.** La cola de 60 de la noche del día 166, un día típico de la prueba, con su resultado a los 30 días y lo que detuvo cada cola; a la derecha, el ritmo de operación.
 
-**Decir.** El despliegue no cambia el proceso del equipo: el cupo sigue en 60 y cambia qué pagos entran. Cada noche se puntúan los pagos del día y los 60 con más fraude esperado pasan a revisión. Cada semana se reentrena con los pagos que ya tienen etiqueta y se vigilan los dólares por revisión. El primer mes es un piloto: los días se asignan al azar a la cola actual o a la del modelo, para medir el efectivo recuperado, que los datos no traen. Si el modelo queda dos semanas por debajo de la regla, se regresa a la regla.
+**Decir.** Así se vería el despliegue. Cada noche se puntúan los pagos del día y el equipo recibe 60, ordenados por fraude esperado; no cambia el equipo ni el cupo, y cada caso lo sigue decidiendo una persona. Esta es la cola de la noche del día 166, un día típico del segundo mes. Arriba van pagos caros con probabilidad media: la mayoría resulta legítima, pero es donde un fraude cuesta más. Esa noche la cola del modelo tuvo 10 fraudes y 4 mil dólares; la de la regla, 2 fraudes y 1,800. Cada semana se reentrena con los pagos de más de 30 días, que ya tienen etiqueta, y se vigilan los dólares por revisión. El primer mes es un piloto con días al azar, y si el modelo queda dos semanas por debajo de la regla, se vuelve a ella.
 
-## 15 · Ordenar la cola de revisión por fraude esperado
+## 15 · Ordenar la cola por fraude esperado: 137 mil USD más en dos meses, con el mismo equipo
 
-**Ver.** Tres recomendaciones, cada una con su cifra.
+**Ver.** Fraude detenido acumulado día a día en los dos meses de prueba, modelo contra regla; a la derecha, los tres pasos.
 
-**Decir.** Recomendamos tres cosas. Primero, adoptar el modelo con el cupo actual: 137 mil dólares más de fraude detenido en dos meses, 45% más que la práctica actual, sin más personal. Segundo, confirmarlo con un piloto de un mes, con días al azar, para medir el efectivo recuperado. Tercero, ajustar el cupo al costo real de revisar: si cuesta 10 dólares, revisar cientos de pagos al día deja 112 mil dólares más de neto. Los límites están en el apéndice: medimos exposición, no efectivo; la etiqueta de Vesta se propaga a la cuenta; y los datos son de 2017 y 2018. Gracias.
+**Decir.** Recomendamos ordenar la cola de revisión por fraude esperado. En los dos meses de prueba, el modelo acumuló 438 mil dólares de fraude detenido y la regla 301 mil: 137 mil más, y la brecha se abre de forma pareja; el modelo gana en 54 de los 62 días. Tres pasos. Primero, adoptarlo con el cupo actual, desde la próxima noche y sin más personal. Segundo, confirmarlo con un piloto de un mes con días al azar, para medir el efectivo recuperado. Tercero, medir lo que cuesta una revisión: si cuesta 10 dólares, revisar cientos de pagos al día deja 112 mil dólares más de neto. Los límites están en el apéndice: medimos exposición, no efectivo; la etiqueta de Vesta se propaga a la cuenta; y los datos son de 2017 y 2018. Gracias.
 
 ## 16 · Las seis fases de CRISP-DM
 
