@@ -31,6 +31,10 @@ NOMBRE = {"XGB": "XGBoost", "ENS": "Ensamble XGBoost + bosque", "XGB_pond": "XGB
           "R_monto": "Mayor monto primero", "R_velocidad": "Regla de velocidad", "R_correo": "Regla por correo"}
 pct, mil = G.pct, G.mil
 PALABRA = {3: "Tres", 4: "Cuatro", 5: "Cinco", 6: "Seis", 7: "Siete", 8: "Ocho", 9: "Nueve"}
+GRUPO_LARGO = {"ventanas": "la velocidad en varias ventanas", "perfil": "el perfil del monto",
+               "novedad": "la novedad del correo o del dispositivo", "compartido": "las entidades compartidas",
+               "texto": "el texto del correo y del dispositivo", "monto_fino": "la forma del monto",
+               "frecuencia": "la frecuencia de cada valor", "uid_fino": "un cliente más fino"}
 GRUPO_CORTO = {"ventanas": "ventanas", "perfil": "perfil", "novedad": "novedad", "compartido": "compartido", "texto": "texto",
                "monto_fino": "forma del monto", "frecuencia": "frecuencia", "uid_fino": "cliente fino", "etiquetas": "contracargos"}
 REPLICAS_ANEXO = 1000  # réplicas del bootstrap en scripts/06_variables.py y 07_anexo_prueba.py
@@ -184,14 +188,14 @@ def _construir():
         "Ninguna variable separa sola el fraude",
         _split(F["eda_matriz"],
                '<dl class="ritmo">'
-               f'<dt>Desde su pago anterior</dt><dd>Mediana de {ta["desde_fraude"]:.1f} horas en fraude y de {ta["desde_legitimo"]:.0f} '
-               'horas en legítimos.</dd>'
-               f'<dt>Días desde el alta</dt><dd>En cuentas de 1 a 7 días, {pct(ta["alta_1_7"], False, 1)} de los pagos son fraude; '
-               f'el promedio es {pct(ta["promedio"], False, 1)}.</dd>'
-               f'<dt>Hora del día</dt><dd>La tasa de fraude va de {pct(ta["hora_min"], False, 1)} a {pct(ta["hora_max"], False, 1)}; '
-               'es más alta en las horas con menos pagos.</dd>'
-               f'<dt>Monto</dt><dd>Mediana de {ta["mediana_fraude"]:.0f} USD en fraude y de {ta["mediana_legitimo"]:.0f} USD en '
-               'legítimos.</dd></dl>',
+               f'<dt>Desde su pago anterior</dt><dd>Mediana: <b class="orange">{ta["desde_fraude"]:.1f} h</b> en fraude y '
+               f'<b class="gris">{ta["desde_legitimo"]:.0f} h</b> en legítimos.</dd>'
+               f'<dt>Días desde el alta</dt><dd>Con 1 a 7 días, <b class="orange">{pct(ta["alta_1_7"], False, 1)}</b> es fraude; '
+               f'el promedio es <b class="gris">{pct(ta["promedio"], False, 1)}</b>.</dd>'
+               f'<dt>Hora del día</dt><dd>La tasa de fraude va de <b class="gris">{pct(ta["hora_min"], False, 1)}</b> a '
+               f'<b class="orange">{pct(ta["hora_max"], False, 1)}</b>: más alta cuando hay menos pagos.</dd>'
+               f'<dt>Monto</dt><dd>Mediana: <b class="orange">{ta["mediana_fraude"]:.0f} USD</b> en fraude y '
+               f'<b class="gris">{ta["mediana_legitimo"]:.0f} USD</b> en legítimos; casi igual.</dd></dl>',
                "split matriz fill"),
         fase=FASE[1], sub="Fraude y legítimo se enciman en cada par de variables: el modelo tiene que combinarlas")
 
@@ -335,15 +339,19 @@ def _construir():
                                   ("En días nuevos", f"días {conf[0]}–{conf[1]}, que la búsqueda no vio", cm["rel"], G.AZUL)])
     en_prueba = [pc[x][f"{mejor_k}_vs_F3"]["rel"] for x in P]
     cero = lambda v: "0%" if round(v * 100, 1) == 0 else pct(v, d=1)  # noqa: E731
+    no_adopta = cm["rel"] < 0 and not confirma
+    elegidos = [GRUPO_LARGO[g] for g in VA["elegidos"]]
     s["espejismo"] = pagina(
-        "Las variables nuevas no se adoptan" if cm["rel"] < 0 and not confirma else "Variables nuevas: validación contra días nuevos",
+        "Las variables nuevas propuestas no se adoptan" if no_adopta else "Las variables nuevas propuestas se adoptan",
         _split(F["espejismo"],
-               '<p class="sub">Sobreajuste a la validación</p>'
-               f'<p>{PALABRA.get(len(cand_g), len(cand_g))} grupos de variables nuevas se eligieron y se midieron en los mismos días.</p>'
-               + (f'<div class="rule"><p>En la prueba quedaron en {cero(en_prueba[0])} y {cero(en_prueba[1])}. <b>Se queda el modelo original.</b></p></div>'
-                  if not confirma else '<div class="rule"><p><b>Se adoptan:</b> la mejora se mantiene en días nuevos.</p></div>')),
-        fase=FASE[4], sub=(f"Mejoraban {pct(interno, False, 1)} en validación, pero empeoraban {pct(-cm['rel'], False, 1)} en días nuevos"
-             if cm["rel"] < 0 and not confirma else f"{pct(interno, d=1)} en validación, {pct(cm['rel'], d=1)} en días nuevos"))
+               '<dl class="ritmo">'
+               f'<dt>Qué se propuso</dt><dd>{PALABRA.get(len(cand_g), len(cand_g))} grupos de variables nuevas. La búsqueda eligió '
+               f'{PALABRA.get(len(elegidos), len(elegidos)).lower()}: {", ".join(elegidos[:-1])} y {elegidos[-1]}.</dd>'
+               + ('<dt>Por qué no se adoptan</dt><dd>Se eligieron y se midieron en los mismos días: la mejora era ajuste a esos días, '
+                  'no al fraude.</dd>'
+                  f'<dt>En la prueba</dt><dd>Quedaron en {cero(en_prueba[0])} y {cero(en_prueba[1])}. Se queda el modelo original.</dd></dl>'
+                  if no_adopta else '<dt>Se adoptan</dt><dd>La mejora se mantiene en días nuevos.</dd></dl>')),
+        fase=FASE[4], sub="Razón: sobreajuste a la validación" if no_adopta else f"{pct(interno, d=1)} en validación, {pct(cm['rel'], d=1)} en días nuevos")
 
     # 6 · Despliegue: tamaño del cupo según el costo de revisar
     ac = L["acumulada"]["modelo"]
@@ -375,7 +383,7 @@ def _construir():
     F["operacion"] = G.operacion(cupo, margen)
     s["despliegue"] = pagina(
         f"Cada noche, el equipo recibe {cupo} pagos a revisar",
-        f'<div class="split ancha fill"><figure>{F["cola_noche"]}</figure><figure>{F["operacion"]}</figure></div>',
+        f'<div class="split opera fill"><figure>{F["cola_noche"]}</figure><figure>{F["operacion"]}</figure></div>',
         fase=FASE[5], sub="Solo cambia el orden: el mismo equipo, el mismo cupo y la misma revisión de hoy")
 
     # Cierre: la recomendación, con el fraude detenido acumulado noche a noche en la prueba
@@ -862,13 +870,17 @@ CSS = r"""
 /* Decisión: el árbol y lo que cuesta el fraude, lado a lado */
 .split.dos { grid-template-columns: minmax(0, 1090fr) minmax(0, 600fr); gap: 72px; }
 /* Datos: la matriz de dispersión y tres hallazgos */
-.split.matriz { grid-template-columns: minmax(0, 940fr) minmax(0, 600fr); gap: 90px; }
+.split.matriz { grid-template-columns: minmax(0, 1025fr) minmax(0, 560fr); gap: 80px; }
+.split.opera { grid-template-columns: minmax(0, 960fr) minmax(0, 704fr); gap: 72px; align-items: start; }
+.argument b.gris { color: var(--muted); }
+.argument b.orange { color: var(--orange); }
 svg .tick { font: 400 18px var(--mono); fill: var(--muted); }
 /* Despliegue y cierre: gráfica a la izquierda; ciclo de operación o pasos a la derecha */
 .split.ancha { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 80px; }
 .ritmo { margin: 0; }
-.ritmo dt { font: 600 31px/1.2 var(--display); letter-spacing: -.015em; color: var(--blue); }
+.ritmo dt { font: 600 31px/1.2 var(--display); letter-spacing: -.015em; color: var(--ink); }
 .ritmo dd { margin: 8px 0 34px; font: 400 26px/1.36 var(--sans); color: var(--text); }
+.ritmo dd b { font-weight: 700; }
 .ritmo dd:last-child { margin-bottom: 0; }
 .pasos { margin: 0; padding: 0; list-style: none; counter-reset: paso; }
 .pasos li { display: grid; grid-template-columns: 64px minmax(0, 1fr); margin-bottom: 46px; }

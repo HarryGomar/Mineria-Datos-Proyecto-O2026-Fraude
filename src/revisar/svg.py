@@ -922,18 +922,23 @@ def fraude_montos(c):
 
 # Datos: matriz de dispersión de cuatro variables, fraude contra legítimo (puntos: muestra al azar; diagonal: todos los pagos)
 def matriz_dispersion(M, n):
+    """Como un pairplot: cada columna es una variable en el eje x (título abajo) y cada fila, una variable en el eje y
+    (título a la izquierda). En la diagonal, el histograma de cada clase."""
     V = M["variables"]
-    k, ML, MT, CW, CH, g = len(V), 96, 64, 200, 132, 14
+    k, MT, CW, CH, g, XT, ML = len(V), 10, 196, 132, 14, 172, 262
     cx = lambda j: ML + j * (CW + g)  # noqa: E731
     cy = lambda i: MT + i * (CH + g)  # noqa: E731
     fondo = cy(k) - g
     ex = [escala(v["rango"], (0, CW)) for v in V]
     ey = [escala(v["rango"], (0, CH)) for v in V]
+    con_x = [[a for a, _, *solo in v["marcas"] if not solo and a > v["rango"][0]] for v in V]
+    con_y = [[a for a, *_ in v["marcas"] if a > v["rango"][0]] for v in V]
     el = []
     for i in range(k):
         for j in range(i + 1):
             px, py = cx(j), cy(i)
             el.append(f'<rect x="{px}" y="{py}" width="{CW}" height="{CH}" fill="#fff" stroke="{LINEA}" stroke-width="2"/>')
+            el += [linea(px + ex[j](a), py + 1, px + ex[j](a), py + CH - 1, HIELO, 2) for a in con_x[j]]
             if i == j:  # histograma de cada clase; altura en raíz cuadrada para que el pico de un valor no aplaste al resto
                 v = V[i]
                 tope = max(max(v["fraude"]), max(v["legitimo"]))
@@ -945,26 +950,30 @@ def matriz_dispersion(M, n):
                     pts += [(px + ex[i](a), py + CH - alto(d)), (px + ex[i](b), py + CH - alto(d))]
                 el.append(trazo(pts + [(px + ex[i](v["bordes"][-1]), py + CH)], NARANJA, 3))
                 continue
+            el += [linea(px + 1, py + CH - ey[i](a), px + CW - 1, py + CH - ey[i](a), HIELO, 2) for a in con_y[i]]
             for clase, color, op in (("legitimo", GRIS_MEDIO, .45), ("fraude", NARANJA, .65)):
                 puntos = "".join(f'<circle cx="{px + ex[j](f[j]):.1f}" cy="{py + CH - ey[i](f[i]):.1f}" r="2.6"/>'
                                  for f in M["muestra"][clase] if f[i] is not None and f[j] is not None)
                 el.append(f'<g fill="{color}" fill-opacity="{op}">{puntos}</g>')
-    nombres = {"Desde su pago anterior": ("Desde su pago", "anterior")}
+    partes = {"Días desde el alta": ("Días desde", "el alta"), "Desde su pago anterior": ("Desde su pago", "anterior")}
     for i, v in enumerate(V):
-        partes = nombres.get(v["nombre"], (v["nombre"],))
-        for r, parte in enumerate(partes):  # el nombre va sobre su histograma; arriba de la diagonal no hay celdas
-            el.append(texto(cx(i), cy(i) - 14 - 32 * (len(partes) - 1 - r), parte, "label-strong"))
+        nombre = partes.get(v["nombre"], (v["nombre"],))
         for a, t, *solo in v["marcas"]:  # "solo y": la marca no cabe en el eje de abajo
             if not solo:
                 el.append(texto(cx(i) + ex[i](a), fondo + 30, t, "tick", ancla="middle"))
             if i:
                 el.append(texto(ML - 10, cy(i) + CH - ey[i](a) + 6, t, "tick", ancla="end"))
-    lx = cx(1)
-    el += [punto(lx + 9, 22, 9, NARANJA, "none", 0), texto(lx + 28, 30, "Fraude", "label"),
-           punto(lx + 149, 22, 9, GRIS_MEDIO, "none", 0), texto(lx + 168, 30, "Legítimo", "label"),
-           texto(lx, 76, f"Puntos: {n} pagos al azar de cada clase.", "micro"),
-           texto(lx, 106, "Diagonal: todos los pagos, sin extremos.", "micro")]
-    return svg(cx(k) - g + 4, fondo + 44, "Matriz de dispersión de cuatro variables para pagos fraudulentos y legítimos.", el)
+        for r, linea_t in enumerate(nombre):  # título del eje x, bajo la columna
+            el.append(texto(cx(i) + CW / 2, fondo + 70 + 30 * r, linea_t, "label-strong", ancla="middle"))
+        if i:  # título del eje y, a la izquierda de la fila (la primera fila solo tiene el histograma)
+            for r, linea_t in enumerate(nombre):
+                el.append(texto(XT, cy(i) + CH / 2 + 10 + 30 * (r - (len(nombre) - 1) / 2), linea_t, "label-strong", ancla="end"))
+    lx = cx(2)
+    el += [punto(lx + 9, 30, 9, NARANJA, "none", 0), texto(lx + 28, 38, "Fraude", "label"),
+           punto(lx + 149, 30, 9, GRIS_MEDIO, "none", 0), texto(lx + 168, 38, "Legítimo", "label"),
+           texto(lx, 92, f"Cada punto es un pago: {n} de cada", "micro"), texto(lx, 122, "clase, elegidos al azar.", "micro"),
+           texto(lx, 168, "Diagonal: cómo se reparte cada", "micro"), texto(lx, 198, "clase, con todos los pagos.", "micro")]
+    return svg(cx(k) - g + 4, fondo + 110, "Matriz de dispersión de cuatro variables para pagos fraudulentos y legítimos.", el)
 
 
 # Datos: qué parte del fraude y de los legítimos cae en cada categoría
@@ -1212,22 +1221,25 @@ def cola_noche(dia, filas, colas):
 
 # Despliegue: el ciclo de operación, de la lista de cada noche al reentrenamiento semanal, con su respaldo
 def operacion(cupo, margen):
-    pasos = [("El modelo ordena los pagos", "de cada noche por fraude esperado"),
-             (f"El equipo revisa los primeros {cupo}", "el mismo equipo y el mismo cupo de hoy"),
-             (f"A los {margen} días llega la etiqueta", "el contracargo dice qué pagos eran fraude"),
-             ("Cada semana se reentrena", "con los pagos que ya tienen etiqueta")]
-    xc, x0, y0, paso = 58, 112, 120, 112
-    ys = [y0 + i * paso for i in range(len(pasos))]
-    el = [texto(0, 30, "Cómo opera", "heading"), linea(xc, ys[0], xc, ys[-1], GRIS_CLARO, 4),
-          _flecha([(xc - 26, ys[-1]), (12, ys[-1]), (12, ys[0]), (xc - 28, ys[0])], GRIS_MEDIO, 3)]
-    for i, ((fuerte, detalle), y) in enumerate(zip(pasos, ys)):
-        el += [punto(xc, y, 26, AZUL, "#fff", 4), texto(xc, y + 10, i + 1, "label-strong", "#fff", "middle"),
-               texto(x0, y - 4, fuerte, "label-strong"), texto(x0, y + 28, detalle, "micro")]
-    yr = ys[-1] + 84
-    el += [_caja(0, yr, 620, 124, NARANJA_PALIDO, 12), texto(28, yr + 46, "Respaldo", "label-strong", NARANJA),
-           texto(28, yr + 80, "Si dos semanas seguidas detiene menos que la", "micro", NEGRO),
-           texto(28, yr + 108, "regla, se vuelve a la regla.", "micro", NEGRO)]
-    return svg(620, yr + 128, "Ciclo de operación: cada noche la lista, a los 30 días la etiqueta, cada semana el reentrenamiento.", el)
+    W, H, gx, gy, y1 = 320, 150, 64, 76, 64
+    x1, x2, y2 = 0, W + gx, y1 + H + gy
+    pasos = [(x1, y1, "Cada noche", ("El modelo ordena", "los pagos del día"), AZUL_PALIDO),
+             (x2, y1, "Esa misma noche", ("El equipo revisa", f"los primeros {cupo}"), AZUL_PALIDO),
+             (x2, y2, f"A los {margen} días", ("Se sabe cuáles", "eran fraude"), HIELO),
+             (x1, y2, "Cada semana", ("Se reentrena con", "esos pagos"), HIELO)]
+    el = [texto(0, 30, "Cómo opera", "heading")]
+    for i, (x, y, cuando, (l1, l2), fondo) in enumerate(pasos):
+        el += [_caja(x, y, W, H, fondo, 16), punto(x + 40, y + 40, 18, AZUL, "none", 0),
+               texto(x + 40, y + 48, i + 1, "label-strong", "#fff", "middle"), texto(x + 70, y + 48, cuando, "label", AZUL),
+               texto(x + 26, y + 98, l1, "label-strong"), texto(x + 26, y + 132, l2, "label-strong")]
+    m1, m2 = y1 + H / 2, y2 + H / 2
+    el += [_flecha([(x1 + W + 8, m1), (x2 - 8, m1)], GRIS_MEDIO, 4), _flecha([(x2 + W / 2, y1 + H + 8), (x2 + W / 2, y2 - 8)], GRIS_MEDIO, 4),
+           _flecha([(x2 - 8, m2), (x1 + W + 8, m2)], GRIS_MEDIO, 4), _flecha([(x1 + W / 2, y2 - 8), (x1 + W / 2, y1 + H + 8)], GRIS_MEDIO, 4)]
+    yr, ancho = y2 + H + 40, 2 * W + gx
+    el += [_caja(0, yr, ancho, 124, NARANJA_PALIDO, 16), texto(26, yr + 46, "Respaldo", "label-strong", NARANJA),
+           texto(26, yr + 82, "Si dos semanas seguidas detiene menos que la regla,", "micro", NEGRO),
+           texto(26, yr + 110, "se vuelve a la regla.", "micro", NEGRO)]
+    return svg(ancho, yr + 128, "Ciclo de operación: cada noche la lista, a los 30 días la etiqueta, cada semana el reentrenamiento.", el)
 
 
 # Cierre: el fraude detenido se acumula noche a noche en los dos meses de prueba

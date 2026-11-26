@@ -29,7 +29,7 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 ## 5 · Ninguna variable separa sola el fraude
 
-**Ver.** Matriz de dispersión de cuatro variables: monto, hora, días desde el alta y tiempo desde el pago anterior. Los puntos son 300 fraudes y 300 legítimos al azar de los días 1 a 120; la diagonal tiene el histograma de todos los pagos de cada clase, sin el 1% de valores extremos y con la altura en raíz cuadrada. A la derecha, cuatro hallazgos.
+**Ver.** Matriz de dispersión de cuatro variables, como un pairplot: cada columna es una variable en el eje horizontal, con su nombre abajo, y cada fila una variable en el eje vertical, con su nombre a la izquierda. Los puntos son 300 fraudes y 300 legítimos al azar de los días 1 a 120; la diagonal tiene el histograma de todos los pagos de cada clase, sin el 1% de valores extremos y con la altura en raíz cuadrada. A la derecha, un hallazgo por variable, con las cifras de fraude en naranja y las de legítimos en gris.
 
 **Decir.** Segunda fase, los datos: 590 mil pagos de 182 días de la competencia IEEE-CIS de Vesta, de una copia pública con huella verificada. Solo 3.5% es fraude. Antes de modelar miramos cómo se reparten fraude y legítimo en cuatro variables: en naranja el fraude, en gris los legítimos. La señal más clara es el tiempo desde el pago anterior del mismo cliente: la mediana es de 1.9 horas en fraude y de 28 horas en legítimos. En cuentas de 1 a 7 días, casi 10% de los pagos es fraude, casi el triple del promedio. Según la hora, la tasa va de 2% a 10%, y es más alta en las horas con menos pagos. El monto solo casi no distingue: la mediana es 76 dólares en fraude y 69 en legítimos. Aun así, en cada par de variables las nubes se enciman: ningún corte simple separa las clases, y por eso hace falta un modelo que combine muchas variables. Este análisis usa solo los días 1 a 120, antes de la prueba.
 
@@ -81,11 +81,11 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 **Decir.** La curva de ganancia ordena los pagos de cada día y acumula el fraude en dólares. Con el cupo de 60, que es 2% de los pagos, el modelo captura 46% del fraude en dólares y la regla 32%. Revisar al azar capturaría 2%: el lift es de 22 veces. Dicho de otra forma, para detener lo mismo que la regla, al modelo le basta con 45% de las revisiones.
 
-## 14 · Las variables nuevas no se adoptan
+## 14 · Las variables nuevas propuestas no se adoptan
 
-**Ver.** Cambio en el fraude detenido con las variables nuevas: en los días de validación donde se eligieron y en quince días que la búsqueda no vio.
+**Ver.** Cambio en el fraude detenido con las variables nuevas: en los días de validación donde se eligieron y en quince días que la búsqueda no vio. A la derecha, qué se propuso, por qué no se adopta y qué pasó en la prueba.
 
-**Decir.** Después de la prueba intentamos mejorar el modelo, como se haría en mantenimiento. Ocho grupos de variables nuevas compitieron con validación cruzada temporal en tres ventanas, más una rejilla de hiperparámetros. En validación, donde se eligieron, subían el resultado 6.1%. En quince días que la búsqueda no vio, lo bajaron 5.3%, con el intervalo de 95% entero bajo cero; en los dos meses de prueba quedaron en +1.5% y 0%. La ganancia venía de elegir y medir sobre los mismos datos: sobreajuste a la validación. Por eso se queda el modelo original, y ningún cambio se adopta sin confirmarlo en días nuevos.
+**Decir.** Después de la prueba intentamos mejorar el modelo, como se haría en mantenimiento. Propusimos ocho grupos de variables nuevas, y una búsqueda con validación cruzada temporal en tres ventanas, más una rejilla de hiperparámetros, eligió tres: el perfil del monto, la novedad del correo o del dispositivo y un cliente más fino. En validación, donde se eligieron, subían el resultado 6.1%. En quince días que la búsqueda no vio, lo bajaron 5.3%, con el intervalo de 95% entero bajo cero; en los dos meses de prueba quedaron en +1.5% y 0%. La razón es el sobreajuste a la validación: elegir y medir con los mismos días premia lo que funcionó en esos días, no lo que detecta fraude. Por eso se queda el modelo original, y ningún cambio se adopta sin confirmarlo en días nuevos.
 
 ## 15 · Si revisar es barato, conviene revisar más de 60 pagos
 
@@ -95,7 +95,7 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 ## 16 · Cada noche, el equipo recibe 60 pagos a revisar
 
-**Ver.** A la izquierda, la lista de la noche del día 166: los primeros pagos con su monto, probabilidad, fraude esperado y resultado real, y el fraude detenido esa noche por el modelo y por la regla. A la derecha, el ciclo de operación y el respaldo.
+**Ver.** A la izquierda, la lista de la noche del día 166: los primeros pagos con su monto, probabilidad, fraude esperado y resultado real, y el fraude detenido esa noche por el modelo y por la regla. A la derecha, el ciclo de operación en cuatro pasos y el respaldo.
 
 **Decir.** Así funcionaría en operación. Cada noche, el modelo calcula para cada pago del día la probabilidad de fraude por el monto y entrega al equipo los 60 con el valor más alto. El equipo, el cupo y la revisión no cambian: cada caso lo sigue decidiendo una persona. Esta es la lista de la noche del día 166, un día típico del segundo mes. Arriba van pagos caros con probabilidad media: la mayoría resulta legítima, pero es donde un fraude cuesta más. Esa noche, la lista del modelo detuvo 10 fraudes y 4 mil dólares; la de la regla, 2 fraudes y 1,800. A la derecha, el ciclo: a los 30 días llega el contracargo y cada pago queda etiquetado, y cada semana se reentrena el modelo con esos pagos. Si dos semanas seguidas el modelo detiene menos que la regla, se vuelve a la regla.
 
