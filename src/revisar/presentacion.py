@@ -22,7 +22,7 @@ P = ("P1", "P2")
 CHARLA = ("portada", "resumen", "decision", "matriz", "eda_matriz", "eda_clases", "deciles", "cliente", "calendario", "modelos",
           "hipotesis", "metricas", "ganancia", "espejismo", "beneficio", "despliegue", "cierre")
 ANEXO = ("crisp", "requisitos", "prueba", "intervalos", "robustez", "costo", "traza", "roc", "calibracion", "observado", "calidad",
-         "catalogo", "candados", "ablacion", "regularizacion", "importancia", "aprendizaje", "validacion")
+         "catalogo", "candados", "ablacion", "regularizacion", "importancia", "aprendizaje", "validacion", "pliegues")
 FASE = ("1 · Comprensión del negocio", "2 · Comprensión de los datos", "3 · Preparación de los datos", "4 · Modelado",
         "5 · Evaluación", "6 · Despliegue")
 NOMBRE = {"XGB": "XGBoost", "ENS": "Ensamble XGBoost + bosque", "XGB_pond": "XGBoost ponderado por monto", "RF": "Bosque aleatorio",
@@ -693,6 +693,45 @@ def _construir():
         f'los días {conf[0]}–{conf[1]} confirman el resultado y la prueba se lee una sola vez.</p>',
         f"Diseño registrado en docs/anexo_variables.md antes de correr · {margen} días de margen entre entrenamiento y evaluación", FASE[4])
 
+    # Validación cruzada en el tiempo: los dos bloques de desarrollo y los dos meses de prueba como pliegues con origen móvil
+    dev_k = {(r["bloque"], r["politica"], r["puntaje"]): float(r["usd"]) for r in _csv("desarrollo.csv") if int(r["K"]) == cupo}
+    elegible = lambda k: not (k.startswith(("ISO", "PUBLICADO", "oraculo")) or k.endswith(("F1", "F4")))  # noqa: E731
+    pl = {}
+    for b in ("D1", "D2", *P):
+        if b in P:
+            u, solo_p, orac, (a, z) = usd[b], usd[b][PUB], usd[b]["oraculo"], R[b]["dias"]
+        else:
+            u = {k: v for (bb, k, modo), v in dev_k.items() if bb == b and modo == "p_x_monto"}
+            solo_p, orac, (a, z) = dev_k[(b, FINAL, "p")], dev_k[(b, "oraculo", "-")], (S["bloques"][b]["inicio"], S["bloques"][b]["fin"])
+            assert abs(u[FINAL] - dv[FINAL][b]) < 0.01
+        orden = sorted((k for k in u if elegible(k)), key=lambda k: -u[k])
+        pl[b] = dict(dias=(a, z), regla=u[FINAL] / u[REGLA] - 1, logit=u[FINAL] / u[LOGIT] - 1, solo_p=u[FINAL] / solo_p - 1,
+                     oraculo=u[FINAL] / orac, lugar=orden.index(FINAL) + 1, n=len(orden))
+    gana_pl = sum(min(v["regla"], v["logit"], v["solo_p"]) > 0 for v in pl.values())
+    o_dev, o_pr = [pl[b]["oraculo"] for b in ("D1", "D2")], [pl[x]["oraculo"] for x in P]
+
+    def celda_pl(v, fmt=lambda x: pct(x, d=1), tinte=_tinte):
+        return f'<td style="--cell:{tinte(v)}"><b>{fmt(v)}</b></td>'
+    tabla_pl = ('<table class="matrix compacta"><thead><tr><th scope="col">Pliegue</th><th scope="col">Contra la regla</th>'
+                '<th scope="col">Contra la logística</th><th scope="col">Contra solo probabilidad</th><th scope="col">Parte del oráculo</th>'
+                '<th scope="col">Lugar del modelo</th></tr></thead><tbody>'
+                + "".join(f'<tr><th scope="row">{b} · días {v["dias"][0]}–{v["dias"][1]}<small>{"eligió el modelo" if b[0] == "D" else "prueba: una sola corrida"}</small></th>'
+                          + celda_pl(v["regla"]) + celda_pl(v["logit"]) + celda_pl(v["solo_p"])
+                          + celda_pl(v["oraculo"], lambda x: pct(x, False), lambda x: _tinte(x - .3, .3))
+                          + f'<td style="--cell:rgba(238,242,246,1)"><b>{v["lugar"]} de {v["n"]}</b></td></tr>' for b, v in pl.items())
+                + "</tbody></table>"
+                '<p class="matrix-key">Ventaja relativa en dólares de fraude dentro de la cola, 60 revisiones por día · El tono crece con la ventaja</p>')
+    s["pliegues"] = ap(
+        "La ventaja se repite en los cuatro pliegues" if gana_pl == len(pl) else f"La ventaja se repite en {gana_pl} de {len(pl)} pliegues",
+        f'<div class="split matrix-split fill"><div class="matrix-block">{tabla_pl}</div><aside class="argument">'
+        f'<p class="big">{gana_pl} <span>de {len(pl)}</span></p>'
+        '<p class="sub">pliegues en que el modelo gana a la regla, a la logística y al orden por probabilidad</p>'
+        f'<div class="rule"><p><b>No cae en la prueba</b></p><p>Su parte del oráculo es {pct(o_dev[0], False)} y {pct(o_dev[1], False)} en los pliegues '
+        f'que lo eligieron, y {pct(o_pr[0], False)} y {pct(o_pr[1], False)} en los de prueba: no hay señal de sobreajuste a la elección.</p></div>'
+        '</aside></div>',
+        f"Origen móvil: cada pliegue entrena solo con días anteriores y {margen} días de margen · "
+        "Lugar entre reglas, logísticas y modelos flexibles con F2 o F3", FASE[4])
+
     # CRISP-DM
     fases = (("Negocio", "Decisión diaria con cupo fijo, dólares por celda y costo de revisar",
               "Matriz de confusión en dólares, t*&nbsp;=&nbsp;C&nbsp;/&nbsp;LTV, curva de beneficio", ("decision", "matriz", "beneficio", "costo")),
@@ -708,7 +747,7 @@ def _construir():
              ("Evaluación", "Prueba congelada en dos meses con hipótesis, intervalos pareados, robustez y traza",
               "Paradoja de la exactitud, F1, ROC, precisión–recall, ganancia y lift, Brier, bootstrap, validación cruzada temporal",
               ("resumen", "hipotesis", "metricas", "ganancia", "espejismo", "prueba", "intervalos", "robustez", "traza", "roc", "calibracion",
-               "importancia", "validacion")),
+               "importancia", "validacion", "pliegues")),
              ("Despliegue", "Cola nocturna, cupo según el costo, reentrenamiento, piloto, respaldo y regla para adoptar cambios",
               "Curva de beneficio contra el cupo; mantenimiento con validación temporal",
               ("beneficio", "despliegue", "cierre", "costo")))
@@ -727,7 +766,7 @@ def _construir():
         ("Mismo presupuesto para todas", "60 revisiones por día; con costo, cada política elige su cupo", ("resumen", "prueba", "costo")),
         ("Práctica actual y base aprendida", "Mejor de seis reglas de tasa × monto; logística L2 con la misma matriz", ("modelos", "prueba", "regularizacion")),
         ("Comparador publicado", "Enfoque de la competencia IEEE-CIS: ordenar por probabilidad", ("hipotesis", "metricas", "roc")),
-        ("Elegir en desarrollo, probar en ≥ 2 periodos", "Días 61–120 para elegir; 121–151 y 152–182 congelados", ("calendario", "modelos", "prueba")),
+        ("Elegir en desarrollo, probar en ≥ 2 periodos", "Días 61–120 para elegir; 121–151 y 152–182 congelados", ("calendario", "modelos", "prueba", "pliegues")),
         ("Ganancia por periodo con IC pareado", f"Bootstrap de {ent(replicas)} réplicas que remuestrean días", ("hipotesis", "intervalos")),
         ("Quitar los casos más grandes", "Sin pagos sobre el p99, monto topado, cupos de 30 y 120", ("robustez",)),
         ("Traza del dinero", "Ambos, solo modelo, solo regla y ninguno suman el fraude del mes", ("traza",)),

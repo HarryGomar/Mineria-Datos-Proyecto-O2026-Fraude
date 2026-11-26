@@ -88,7 +88,7 @@ RAIZ = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 sys.path.insert(0, str(RAIZ / "src"))
 from revisar.datos import (ARCHIVO, CAT, CLAVES, CONJUNTOS, DERIVADAS, ESTADISTICAS, FUENTE, NUM, VESTA, _historial,
                            bloque, cargar, verificar_fuente)
-from revisar.evaluacion import bootstrap, dinero, matriz, seleccion
+from revisar.evaluacion import bootstrap, dinero, matriz, por_dia, seleccion
 from revisar.figuras import autonomo, laminas
 from revisar.politicas import CART, CS, FLEXIBLES, ISO, MLP, REGLAS, RF, XGB, Diseno, _tasa, modelos, puntaje, reglas
 from revisar.rutas import PROCESADOS
@@ -821,7 +821,36 @@ for x in P:
                               "monto topado en el p99": pc(r["topado"][c]), "días que gana": f"{R[x]['dias_que_gana'][c]} de {R[x]['n_dias']}",
                               "días 121–144": pc(R[x]["limpio"]["contrastes"][c]["rel"]) if x == "P1" else "—"}
 pd.DataFrame(rb)"""),
-    M(r"""**Costo por revisión.** Si revisar cuesta, cada política elige su cupo en desarrollo para cada costo; el neto
+    M(r"""**¿Sobreajuste a los periodos? Validación cruzada en el tiempo.** Los cuatro bloques son los pliegues de una
+validación con origen móvil: cada uno entrena solo con días anteriores, con 30 de margen, y se evalúa en un mes que su
+modelo no vio. D1 y D2 se usaron para elegir; P1 y P2 no. Si la elección estuviera sobreajustada a D1 y D2, el modelo
+caería en P1 y P2. Las políticas elegibles son las reglas, las logísticas y los modelos flexibles con F2 o F3."""),
+    C(r"""filas = {}
+for b, arch in ARCH.items():
+    g = pd.read_parquet(PROCESADOS / f"{arch}.parquet")
+    d_, y_, m_ = g["dia"].to_numpy(), g["fraude"].to_numpy(), g["monto"].to_numpy()
+    eleg = [c for c in g.columns if c not in ("dia", "fraude", "monto") and not c.startswith("ISO") and not c.endswith(("F1", "F4"))]
+    usd = {c: dinero(puntaje(c.split("|")[0], g[c].to_numpy(), m_), d_, y_, m_, K) for c in eleg}
+    solo_p, orac = dinero(g[FINAL].to_numpy(), d_, y_, m_, K), dinero(y_ * m_, d_, y_, m_, K)
+    dm, dr = (por_dia(puntaje(n.split("|")[0], g[n].to_numpy(), m_), d_, y_, m_, K) for n in (FINAL, REGLA))
+    orden = sorted(eleg, key=lambda c: -usd[c])
+    filas[b] = {"uso": "elegir" if b[0] == "D" else "prueba", "días": f"{PART[b][0]}–{PART[b][1]}",
+                "contra la regla": pc(usd[FINAL] / usd[REGLA] - 1), "contra la logística": pc(usd[FINAL] / usd[LOGIT] - 1),
+                "contra solo probabilidad": pc(usd[FINAL] / solo_p - 1), "parte del oráculo": f"{usd[FINAL] / orac:.0%}",
+                "lugar del modelo": f"{orden.index(FINAL) + 1} de {len(eleg)}",
+                "quién le gana": ", ".join(f"{c} ({pc(usd[c] / usd[FINAL] - 1)})" for c in orden[:orden.index(FINAL)]) or "nadie",
+                "días que gana a la regla": f"{int((dm > dr).sum())} de {len(dm)}"}
+pliegues = pd.DataFrame(filas).T
+assert all(v.startswith("+") for c in ("contra la regla", "contra la logística", "contra solo probabilidad") for v in pliegues[c])
+pliegues"""),
+    M(r"""El modelo gana a la regla, a la logística y al orden por probabilidad en los cuatro pliegues, y su parte del oráculo
+no cae al pasar de los pliegues que lo eligieron a los de prueba: no hay señal de que la elección se sobreajustara a D1 y
+D2. Solo el ensamble XGBoost + bosque le gana en algún pliegue, por pocos puntos; perdió mucho en D1, y la regla de
+selección, escrita antes del torneo, pedía ganar en el total. Además, los hiperparámetros no se ajustaron con estos
+periodos (4.3), y la única búsqueda que sí ajustó, la de variables, mostró sobreajuste en la confirmación y se
+descartó (3.3).
+
+**Costo por revisión.** Si revisar cuesta, cada política elige su cupo en desarrollo para cada costo; el neto
 (recuperado − costo) se mide en la prueba."""),
     C(r"""ct = pd.DataFrame([{"costo por revisión": e["costo"], "recupera": f"{e['recupera']:.0%}",
                     **{f"{k}: cupo": e[k]["K"] for k in ("modelo", "logistica", "regla")},
@@ -966,6 +995,7 @@ se cumplen en los dos meses.
 - El modelo, los comparadores y las metas se congelaron antes de la prueba, que se corrió una sola vez (1.3, 4.1).
 - Cada modelo entrena con todos los pagos ya etiquetados, y el modelo final reentrenado aquí reproduce la corrida congelada (4.2).
 - Con las etiquetas barajadas, el mismo modelo detiene menos de la mitad: su ventaja viene de lo que aprende (4.1).
+- La ventaja se repite en los cuatro pliegues de la validación en el tiempo, y no cae del desarrollo a la prueba (5.2).
 - Las probabilidades están calibradas y la ventaja resiste otros cupos, sin los pagos más caros y semana a semana (5.1, 5.2, 6.2).
 - Una mejora que no se confirmó en días nuevos no se adoptó (3.3).
 

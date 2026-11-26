@@ -212,3 +212,9 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 **Ver.** Apéndice. Ventanas de búsqueda, días de confirmación y prueba, con su entrenamiento y margen.
 
 **Decir.** Tres ventanas de quince días eligen variables; los días 106 a 120 confirman; la prueba se lee una sola vez. Es el diseño detrás de la lámina 14.
+
+## 36 · La ventaja se repite en los cuatro pliegues
+
+**Ver.** Apéndice. Ventaja del modelo en los cuatro bloques en el tiempo, los dos que lo eligieron y los dos de prueba, con su parte del oráculo y su lugar entre las políticas elegibles.
+
+**Decir.** Si preguntan por sobreajuste: los dos bloques de desarrollo y los dos meses de prueba forman una validación cruzada en el tiempo, y cada uno entrena solo con días anteriores. El modelo gana a la regla, a la logística y al orden por probabilidad en los cuatro. Su parte del oráculo sube de 41 y 46% en los bloques que lo eligieron a 49 y 52% en la prueba; si la elección estuviera sobreajustada, caería. Solo el ensamble con el bosque le gana en dos bloques, por menos de 4%, y perdió por mucho en el primero.

@@ -2,7 +2,7 @@
 
 Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el reporte
 (`reporte/reporte.md`), el cuaderno ejecutado (`notebooks/que_pagos_revisar.ipynb`), la presentación
-(`presentacion/que-pagos-revisar.html`, láminas 1–17 y apéndice A1–A18) y el código (`src/revisar`, `scripts/`).
+(`presentacion/que-pagos-revisar.html`, láminas 1–17 y apéndice A1–A19) y el código (`src/revisar`, `scripts/`).
 
 ## Requisitos de la decisión y la evaluación
 
@@ -17,6 +17,7 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 | Comparador publicado | El enfoque de la competencia IEEE-CIS: el mismo modelo ordenado por probabilidad | 4.3, 5.4 | 5.1, 5.2 | 4, 11, 12, A8 |
 | Revisar siempre los casos más claros | Cola mixta (lugares reservados para los más probables) y valor por fraude atrapado, contando el fraude evitado al bloquear la tarjeta: ninguna variante detiene más dinero | — | 5.1 | 4 |
 | Elegir en desarrollo y probar en dos periodos o más | Días 61–120 para elegir; días 121–151 y 152–182 congelados, una sola corrida | 4.1, 5 | 4.1, 4.2, 5 | 9, 10, A3 |
+| Sin sobreajuste a los periodos | Cuatro pliegues con origen móvil (D1, D2, P1, P2): el modelo gana a la regla, a la logística y al orden por probabilidad en los cuatro, y no cae del desarrollo a la prueba | 4.1, 5 | 5.2 | 9, 11, A19 |
 | Ganancia por periodo con intervalo pareado | Bootstrap pareado de 1,000 réplicas que remuestrean días; el cuaderno las vuelve a generar | 5.2 | 5.2 | 11, A4 |
 | Quitar los casos más grandes | Sin pagos sobre el percentil 99, monto topado, cupos de 30 y 120, días 121–144 | 5.8 | 3.1, 5.2 | A5 |
 | Traza del dinero | Ambos, solo modelo, solo regla y ninguno suman el fraude del mes | 5.9 | 5.2 | A7 |
@@ -34,7 +35,7 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 | Comprensión de los datos | 2 | 2.1–2.3 | 5–7, A10, A11 |
 | Preparación de los datos | 3 | 3.1–3.3 | 8, A12–A14 |
 | Modelado | 4 | 4.1–4.3 | 9, 10, A15, A17 |
-| Evaluación | 5, 6 | 5.1–5.3 | 2, 11–14, A3–A5, A7–A9, A16, A18 |
+| Evaluación | 5, 6 | 5.1–5.3 | 2, 11–14, A3–A5, A7–A9, A16, A18, A19 |
 | Despliegue | 7 | 6.1, 6.2 | 15, 16, 17, A6 |
 
 ## Técnicas del curso
@@ -56,4 +57,4 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 | Detección de anomalías (bosque de aislamiento) | 4.6, 5.10 | 10 |
 | Importancia por permutación | 4.6 | A16 |
 | Validación temporal y bootstrap pareado | 4.1, 5.2 | 9, 11, A4 |
-| Validación cruzada temporal, selección hacia adelante, rejilla con parada temprana | 6 | 14, A17, A18 |
+| Validación cruzada temporal, selección hacia adelante, rejilla con parada temprana | 6 | 14, A17, A18, A19 |
