@@ -1,6 +1,6 @@
 # Guion: Qué pagos revisar
 
-Quince láminas para 12 a 14 minutos, alrededor de un minuto cada una, y diecinueve de apéndice para preguntas. Cada
+Quince láminas para 12 a 14 minutos, alrededor de un minuto cada una, y dieciocho de apéndice para preguntas. Cada
 lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indica qué se ve y qué se dice.
 
 ## 1 · Qué pagos revisar
@@ -15,17 +15,17 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 **Decir.** Este es el resultado. En dos meses que apartamos hasta el final, la mejor regla, que representa la práctica actual, detiene 301 mil dólares de fraude. Una logística con la misma información, 372 mil. El modelo, 438 mil: 137 mil dólares más que la regla, 45% más, con exactamente las mismas revisiones. No hace falta más personal; solo cambia el orden de la cola. Y gana en cada mes por separado. El resto de la charla explica cómo llegamos aquí y por qué el resultado es creíble.
 
-## 3 · La decisión: cada noche, qué 60 de unos 2,800 pagos revisar
+## 3 · Cada noche se revisan 60 de unos 2,800 pagos; un fraude que pasa se pierde completo
 
-**Ver.** Las tres cifras del problema y la ficha de la decisión: quién, cuándo, opciones, práctica actual y criterio de éxito.
+**Ver.** Árbol de la decisión: cada pago se revisa o se deja pasar, con lo que cuesta cada resultado; abajo, quién decide, la práctica actual y el criterio de éxito.
 
-**Decir.** Primera fase de CRISP-DM: entender el negocio. Cada día llegan unos 2,800 pagos y el equipo de riesgo del procesador puede revisar 60, el 2%. Solo 3.5% de los pagos es fraude. Cada noche decide, para cada pago, si lo revisa o lo deja pasar. Hoy lo hace con una regla fija; como Vesta no la publica, la representamos con la mejor de seis reglas de tasa histórica por monto. El criterio de éxito es uno: más dólares de fraude detenidos con las mismas 60 revisiones.
+**Decir.** Primera fase de CRISP-DM: entender el negocio. Cada noche llegan unos 2,800 pagos y el equipo de riesgo del procesador puede revisar 60, el 2%. Para cada pago hay dos opciones. Si se revisa, se paga la revisión y, si era fraude, se detiene. Si se deja pasar y era legítimo, no pasa nada; si era fraude, llega el contracargo y se pierde el monto completo. Es la matriz de confusión del curso, en dólares. Hoy se decide con una regla fija; como Vesta no la publica, la representamos con la mejor de seis reglas de tasa histórica por monto. El éxito se mide en dólares de fraude detenidos con las mismas 60 revisiones.
 
 ## 4 · Se revisa el fraude esperado en dólares, no el pago más sospechoso
 
-**Ver.** Lo que cuesta cada caso de la matriz de confusión y dos fraudes reales de un día.
+**Ver.** Los pagos del día 166 por probabilidad estimada y monto, en escala logarítmica; la línea marca 44 USD de fraude esperado y hay dos fraudes reales señalados.
 
-**Decir.** Esta es la matriz de confusión del curso, pero en dinero. Si se revisa, se paga la revisión. Si se deja pasar un fraude, se pierde el monto completo. Revisar conviene cuando la probabilidad por el monto supera el costo: es la regla p mayor o igual a C entre LTV, con el monto como valor en riesgo. Con un cupo fijo, eso significa revisar los 60 pagos con mayor probabilidad por monto. Dos fraudes reales del día 166: uno de 554 dólares con 10% de probabilidad vale 56 dólares esperados y se revisa. Otro de 30 dólares con 80% es mucho más sospechoso, pero vale 24 y pasa. Ese día el corte quedó en 44 dólares esperados.
+**Decir.** Revisar conviene cuando la probabilidad por el monto supera el costo de revisar: es la regla del curso, p mayor o igual a C entre LTV, con el monto como valor en riesgo. Con un cupo fijo, se revisan los 60 pagos con mayor probabilidad por monto. Cada punto es un pago de un día, y los 60 revisados quedan arriba de la línea. Dos fraudes reales: uno de 554 dólares con 10% de probabilidad vale 56 dólares esperados y se revisa. Otro de 30 dólares con 80% es mucho más sospechoso, pero vale 24 y pasa. Un pago caro entra a la cola con menos probabilidad que uno barato.
 
 ## 5 · El 10% de los pagos más caros concentra 53% del fraude en dólares
 
@@ -35,7 +35,7 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 ## 6 · Reconstruimos al cliente: si volvió a pagar en menos de una hora, el fraude casi se duplica
 
-**Ver.** Tasa de fraude según el tiempo desde el pago anterior del mismo cliente.
+**Ver.** Tasa de fraude según el tiempo desde el pago anterior del mismo cliente; a la derecha, lo que agrega su historial.
 
 **Decir.** Tercera fase, la preparación. Los datos están anonimizados y no traen un identificador de cliente. Pero la columna D1 cuenta los días desde el alta de la tarjeta; al restarla del día del pago sale una fecha de alta fija. Tarjeta, dirección y fecha de alta identifican al cliente. Con eso medimos su historial: recencia, frecuencia y monto, como en RFM. Si el mismo cliente pagó hace menos de una hora, 6.8% de los pagos es fraude, casi el doble del promedio. Todas las medidas usan solo pagos anteriores y ninguna etiqueta, para que no se cuele información del futuro. Con este historial, el mismo modelo detiene 21 mil dólares más en desarrollo.
 
@@ -57,11 +57,11 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 **Decir.** Quinta fase, la evaluación. Antes de abrir la prueba registramos las metas: al menos 20% más que la regla y 10% más que la logística, con el intervalo de 95% entero sobre cero. Contra la regla, el modelo gana 30% el primer mes y 63% el segundo. Contra la logística, 13% y 22%. Los intervalos salen de remuestrear días completos mil veces. Las cuatro barras pasan su meta. La tercera meta, superar al mismo modelo ordenado solo por probabilidad, también se cumple; se ve en la siguiente lámina y en el apéndice.
 
-## 10 · La exactitud y el AUC eligen otra cola; solo los dólares eligen el modelo
+## 10 · El mejor AUC detiene 47% menos fraude: el modelo se elige por dólares
 
-**Ver.** Exactitud, ROC-AUC y fraude detenido de cinco políticas con el mismo cupo; en color, la ganadora de cada métrica.
+**Ver.** ROC-AUC contra fraude detenido en la prueba para cuatro políticas con el mismo cupo; a la derecha, la exactitud de no revisar nada.
 
-**Decir.** Esta es la lección central del curso aplicada al caso. No revisar nada tiene 96.6% de exactitud, más que cualquier cola: es la paradoja de la exactitud, porque casi todos los pagos son legítimos. El mismo modelo ordenado solo por probabilidad tiene el mejor AUC, 0.87, y también gana en precisión, recall y F1. Pero detiene 231 mil dólares, contra 438 mil del modelo. Esas métricas cuentan aciertos: un fraude de 8 dólares pesa lo mismo que uno de 900. Si la decisión se mide en dinero, la métrica para elegir tiene que ser dinero.
+**Decir.** Esta es la lección central del curso aplicada al caso. Ordenar solo por probabilidad da el mejor AUC, 0.87, y también gana en precisión, recall y F1. Pero detiene 231 mil dólares, contra 438 mil del modelo: 47% menos. Es el mismo XGBoost; el modelo solo multiplica por el monto. La exactitud es peor todavía: no revisar nada acierta en 96.6% de los pagos, porque casi todos son legítimos. Estas métricas cuentan aciertos, y un fraude de 8 dólares pesa lo mismo que uno de 900. Si la decisión se mide en dinero, la métrica para elegir tiene que ser dinero.
 
 ## 11 · Revisando 2% de los pagos, el modelo captura 46% del fraude en dólares; la regla, 32%
 
@@ -71,9 +71,9 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 ## 12 · Las variables nuevas ganaban 6.1% donde se eligieron y perdían 5.3% en días nuevos
 
-**Ver.** Cambio en el fraude detenido con las variables nuevas: donde se eligieron, en días apartados y en los dos meses de prueba.
+**Ver.** Cambio en el fraude detenido con las variables nuevas: en los días donde se eligieron y en quince días que la búsqueda no vio.
 
-**Decir.** Después de la prueba intentamos mejorar el modelo, como se haría en mantenimiento. Ocho grupos de variables nuevas compitieron con validación cruzada temporal en tres ventanas, más una rejilla de hiperparámetros. Donde se eligieron, subían el resultado 6.1%. En quince días que la búsqueda no vio, lo bajaron 5.3%, con el intervalo entero bajo cero; en la prueba quedaron cerca de cero. La ganancia venía de elegir y medir sobre los mismos datos: sobreajuste a la validación. Por eso se queda el modelo original, y ningún cambio se adopta sin confirmarlo en días nuevos.
+**Decir.** Después de la prueba intentamos mejorar el modelo, como se haría en mantenimiento. Ocho grupos de variables nuevas compitieron con validación cruzada temporal en tres ventanas, más una rejilla de hiperparámetros. Donde se eligieron, subían el resultado 6.1%. En quince días que la búsqueda no vio, lo bajaron 5.3%, con el intervalo de 95% entero bajo cero; en los dos meses de prueba quedaron en +1.5% y 0%. La ganancia venía de elegir y medir sobre los mismos datos: sobreajuste a la validación. Por eso se queda el modelo original, y ningún cambio se adopta sin confirmarlo en días nuevos.
 
 ## 13 · Si una revisión cuesta 10 USD, conviene revisar cientos de pagos al día, no 60
 
@@ -83,15 +83,15 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 ## 14 · Despliegue: el mismo equipo y la misma cola; cambia el orden
 
-**Ver.** Cuatro etapas: la cola de cada noche, el reentrenamiento semanal, el piloto del primer mes y el respaldo.
+**Ver.** El ciclo de operación: pagos del día, modelo, cola de 60 y equipo de riesgo; el reentrenamiento semanal; abajo, el piloto y el respaldo.
 
 **Decir.** El despliegue no cambia el proceso del equipo: el cupo sigue en 60 y cambia qué pagos entran. Cada noche se puntúan los pagos del día y los 60 con más fraude esperado pasan a revisión. Cada semana se reentrena con los pagos que ya tienen etiqueta y se vigilan los dólares por revisión. El primer mes es un piloto: los días se asignan al azar a la cola actual o a la del modelo, para medir el efectivo recuperado, que los datos no traen. Si el modelo queda dos semanas por debajo de la regla, se regresa a la regla.
 
 ## 15 · Ordenar la cola de revisión por fraude esperado
 
-**Ver.** El valor del modelo y tres recomendaciones.
+**Ver.** Tres recomendaciones, cada una con su cifra.
 
-**Decir.** Recomendamos tres cosas. Primero, adoptar el modelo con el cupo actual: 137 mil dólares más de fraude detenido en dos meses, 45% más que la práctica actual, sin más personal. Segundo, confirmarlo con un piloto de un mes, con días al azar, para medir el efectivo recuperado. Tercero, ajustar el cupo al costo real de revisar: si cuesta 10 dólares, conviene revisar cientos de pagos al día, no 60. Los límites están en el apéndice: medimos exposición, no efectivo; la etiqueta de Vesta se propaga a la cuenta; y los datos son de 2017 y 2018. Gracias.
+**Decir.** Recomendamos tres cosas. Primero, adoptar el modelo con el cupo actual: 137 mil dólares más de fraude detenido en dos meses, 45% más que la práctica actual, sin más personal. Segundo, confirmarlo con un piloto de un mes, con días al azar, para medir el efectivo recuperado. Tercero, ajustar el cupo al costo real de revisar: si cuesta 10 dólares, revisar cientos de pagos al día deja 112 mil dólares más de neto. Los límites están en el apéndice: medimos exposición, no efectivo; la etiqueta de Vesta se propaga a la cuenta; y los datos son de 2017 y 2018. Gracias.
 
 ## 16 · Las seis fases de CRISP-DM
 
@@ -200,9 +200,3 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 **Ver.** Apéndice. Ventanas de búsqueda, días de confirmación y prueba, con su entrenamiento y margen.
 
 **Decir.** Tres ventanas de quince días eligen variables; los días 106 a 120 confirman; la prueba se lee una sola vez. Es el diseño detrás de la lámina 12.
-
-## 34 · Los 60 pagos revisados de un día quedan arriba de 44 USD de fraude esperado
-
-**Ver.** Apéndice. Los pagos del día 166 según su probabilidad estimada y su monto, en escala logarítmica; la diagonal marca probabilidad × monto = 44 USD.
-
-**Decir.** Si preguntan cómo se ve la cola un día: cada punto es un pago, y los 60 revisados quedan arriba de la diagonal. Un pago caro entra con menos probabilidad que uno barato. El umbral no se fija de antemano; lo fija el cupo.

@@ -854,32 +854,100 @@ def metas(grupos, dominio=(0, 1.0)):
     return svg(1080, y + 40, "Ventaja del modelo por mes de prueba, con intervalos de 95% y la meta fijada antes de la prueba.", el)
 
 
-# Evaluación: cada métrica elige a otro ganador; solo los dólares eligen el modelo
-def tres_metricas(filas, paneles):
-    """filas: (nombre, sub, color de la etiqueta). paneles: (título, valores por fila o None, formato, máximo, color del ganador)."""
-    ancho_e, ancho_p, hueco = 330, 400, 60
-    alto, y0 = 92, 92
-    el = []
-    for i, (nombre, sub, color) in enumerate(filas):
-        y = y0 + i * alto
-        el += [texto(0, y + 36, nombre, "label-strong", color), texto(0, y + 64, sub, "micro")]
-    for j, (titulo, vals, fmt, tope, color_g) in enumerate(paneles):
-        x0 = ancho_e + j * (ancho_p + hueco)
-        X = escala((0, tope), (x0, x0 + ancho_p - 110))
-        g = max((i for i, v in enumerate(vals) if v is not None), key=lambda i: vals[i])
-        el += [texto(x0, 34, titulo, "heading"), linea(x0, 60, x0, y0 + len(filas) * alto - 14, "#a5aebc", 2)]
-        for i, v in enumerate(vals):
-            y = y0 + i * alto
-            if v is None:
-                el.append(texto(x0 + 14, y + 46, "—", "axis"))
-                continue
-            gana = i == g
-            el += [rect(x0, y + 14, X(v) - x0, 44, color_g if gana else GRIS_CLARO),
-                   texto(X(v) + 12, y + 47, fmt(v), "data" if gana else "label", color_g if gana else GRIS)]
-    ancho_t = ancho_e + len(paneles) * (ancho_p + hueco) - hueco
-    el = [linea(0, y0 + i * alto - 2, ancho_t, y0 + i * alto - 2, LINEA, 2) for i in range(1, len(filas))] + el
-    return svg(ancho_e + len(paneles) * (ancho_p + hueco) - hueco + 10, y0 + len(filas) * alto,
-               "Exactitud, AUC y dólares de fraude detenido de cada política; cada métrica elige a otro ganador.", el)
+AZUL_PALIDO, NARANJA_PALIDO = "#e3f0fa", "#fbe8df"
+
+
+def _caja(x, y, ancho, alto, fondo, rx=14):
+    return f'<rect x="{x:.1f}" y="{y:.1f}" width="{ancho:.1f}" height="{alto:.1f}" rx="{rx}" fill="{fondo}"/>'
+
+
+def _flecha(puntos, color=GRIS_MEDIO, grosor=3):
+    """Polilínea con punta de flecha en el último punto."""
+    (x1, y1), (x2, y2) = puntos[-2], puntos[-1]
+    a = math.atan2(y2 - y1, x2 - x1)
+    base = (x2 - 12 * math.cos(a), y2 - 12 * math.sin(a))
+    punta = [(x2, y2), (x2 - 18 * math.cos(a - .45), y2 - 18 * math.sin(a - .45)), (x2 - 18 * math.cos(a + .45), y2 - 18 * math.sin(a + .45))]
+    return trazo(list(puntos[:-1]) + [base], color, grosor) + trazo(punta, color, 1, color, True)
+
+
+# Negocio: la decisión de cada noche como árbol, con lo que cuesta cada resultado
+def decision_arbol(pagos, cupo):
+    fin = 1600
+    el = [texto(0, 28, "Cada noche", "micro"), texto(450, 28, "Decisión", "micro"), texto(900, 28, "Resultado", "micro"),
+          texto(fin - 24, 28, "Lo que cuesta", "micro", ancla="end")]
+    el += [_caja(0, 185, 340, 180, HIELO), texto(34, 250, "Pagos del día", "label"), texto(34, 326, f"≈{pagos:,}", "chart-big")]
+    el += [_flecha([(340, 275), (395, 275), (395, 125), (450, 125)]), _flecha([(395, 275), (395, 425), (450, 425)])]
+    el += [_caja(450, 70, 360, 110, AZUL_PALIDO), texto(482, 116, "Revisar", "label-strong", AZUL),
+           texto(482, 154, f"{cupo} al día: {cupo / pagos:.0%} de los pagos", "micro"),
+           _caja(450, 370, 360, 110, HIELO), texto(482, 416, "Dejar pasar", "label-strong"),
+           texto(482, 454, f"≈{pagos - cupo:,} al día", "micro")]
+    el += [_flecha([(810, 125), (880, 125)]),
+           texto(900, 117, "Fraude o legítimo", "label-strong"), texto(900, 153, "el fraude se detiene", "micro"),
+           texto(fin - 24, 136, "− costo de revisar", "data", NEGRO, "end")]
+    el += [_flecha([(810, 425), (845, 425), (845, 350), (880, 350)]), _flecha([(845, 425), (845, 500), (880, 500)]),
+           texto(900, 342, "Legítimo", "label-strong"), texto(900, 378, "el cliente no nota nada", "micro"),
+           texto(fin - 24, 361, "0", "data", NEGRO, "end"),
+           _caja(880, 448, fin - 880, 104, NARANJA_PALIDO, 10),
+           texto(900, 492, "Fraude", "label-strong", NARANJA), texto(900, 528, "llega el contracargo", "micro"),
+           texto(fin - 24, 511, "− monto completo", "data", NARANJA, "end")]
+    return svg(fin, 560, "La decisión de cada noche: revisar o dejar pasar cada pago, y lo que cuesta cada resultado.", el)
+
+
+# Negocio: un día de pagos por probabilidad y monto; la cola son los 60 de mayor fraude esperado
+def cola_dia(dia, casos):
+    """casos: (probabilidad, monto, renglón 1, renglón 2, color), señalados con un anillo y una nota a la derecha."""
+    X = escala((-4, 0), (130, 1000))
+    Y = escala((0, 4), (560, 80))
+    lx = lambda p: X(math.log10(min(max(p, 1e-4), 1)))  # noqa: E731
+    ly = lambda m: Y(math.log10(min(max(m, 1), 1e4)))  # noqa: E731
+    c = dia["corte"]
+    p_lo = c / 1e4
+    el = [texto(130, 30, f"Los {dia['pagos']:,} pagos del día {dia['dia']}, uno por punto", "heading"),
+          trazo([(lx(p_lo), ly(1e4)), (lx(1), ly(1e4)), (lx(1), ly(c))], "none", 0, AZUL_PALIDO, True)]
+    for d in range(-4, 1):
+        el += [linea(X(d), 80, X(d), 560), texto(X(d), 596, ["0.01%", "0.1%", "1%", "10%", "100%"][d + 4], "axis", ancla="middle")]
+    for d in range(0, 5):
+        el += [linea(130, Y(d), 1000, Y(d)), texto(116, Y(d) + 7, f"{10 ** d:,}", "axis", ancla="end")]
+    pts = dia["puntos"]
+    el += [punto(lx(p), ly(m), 3.2, GRIS_MEDIO, "none", 0, .35) for p, m, f, r in pts if not f and not r]
+    el += [punto(lx(p), ly(m), 5, NARANJA, "#fff", 1) for p, m, f, r in pts if f and not r]
+    el += [punto(lx(p), ly(m), 7, AZUL if f else "#9cc3e0", AZUL if f else "#fff", 2) for p, m, f, r in pts if r]
+    el += [linea(lx(p_lo), ly(1e4), lx(1), ly(c), AZUL, 3, True),
+           texto(lx(p_lo) - 16, ly(1e4) + 48, f"probabilidad × monto = {c:,.0f} USD", "label-strong", AZUL, "end"),
+           texto(lx(p_lo) - 16, ly(1e4) + 78, "arriba de la línea: los 60 revisados", "micro", AZUL, "end"),
+           texto(0, 50, "USD", "axis"), texto(565, 640, "Probabilidad de fraude estimada por el modelo", "label", ancla="middle")]
+    xr = 1070
+    for i, (p, m, r1, r2, color) in enumerate(casos):
+        yc = 190 + i * 230
+        px, py = lx(p), ly(m)
+        el += [linea(px + 16, py, xr - 14, yc - 12, color, 2), punto(px, py, 16, "none", color, 4),
+               texto(xr, yc - 20, r1, "label-strong"), texto(xr, yc + 24, r2, "data", color)]
+    el += leyenda(130, 690, [("revisado: fraude", AZUL, "punto"), ("revisado: legítimo", "#9cc3e0", "punto"),
+                             ("fraude que pasa", NARANJA, "punto"), ("legítimo", GRIS_CLARO, "punto")])
+    return svg(1640, 704, "Pagos de un día por probabilidad estimada y monto; se revisan los 60 con más fraude esperado.", el)
+
+
+# Evaluación: el mejor AUC no es el que más dinero detiene
+def auc_prueba(puntos, enlace=None):
+    """puntos: (nombre, auc, usd, color, lado de la etiqueta). enlace: dos nombres que se unen con trazos (el mismo modelo, otro orden)."""
+    X = escala((.6, .9), (130, 1040))
+    Y = escala((200e3, 460e3), (560, 70))
+    el = [texto(130, 26, "Fraude detenido en la prueba, mil USD", "heading")]
+    for v in range(200_000, 450_001, 50_000):
+        el += [linea(130, Y(v), 1040, Y(v)), texto(116, Y(v) + 7, mil(v), "axis", ancla="end")]
+    for a in (.6, .65, .7, .75, .8, .85, .9):
+        el.append(texto(X(a), 596, f"{a:.2f}", "axis", ancla="middle"))
+    pos = {n: (X(a), Y(u)) for n, a, u, _, _ in puntos}
+    if enlace:
+        (xa, ya), (xb, yb) = pos[enlace[0]], pos[enlace[1]]
+        el.append(linea(xa, ya, xb, yb, GRIS_MEDIO, 2, True))
+    for nombre, auc, usd, color, lado in puntos:
+        x, y = pos[nombre]
+        dx, an = (-26, "end") if lado == "izq" else (26, "start")
+        el += [punto(x, y, 15, color), texto(x + dx, y - 4, nombre, "label-strong", color, an),
+               texto(x + dx, y + 28, f"AUC {auc:.2f} · {mil(usd)} mil USD", "micro", ancla=an)]
+    el.append(texto(585, 640, "ROC-AUC en la prueba", "label", ancla="middle"))
+    return svg(1080, 656, "ROC-AUC contra dólares de fraude detenido en la prueba, para cada política con 60 revisiones por día.", el)
 
 
 # Evaluación: ganancia acumulada en dólares, en la zona donde se decide el cupo
@@ -946,35 +1014,48 @@ def beneficio_cupo(series, cupo, kmax=500, ymin=-200e3, ymax=600e3):
 
 
 # Evaluación: lo que se gana donde se elige no se repite en días que la búsqueda no vio
-def espejismo(filas, dominio=(-.15, .15)):
-    """filas: (nombre, sub, rel, ic95 o None, color), una columna cada una. Sin intervalo: medido donde se eligió."""
-    Y = escala(dominio, (470, 70))
-    ancho, paso, x0 = 150, 240, 140
-    el = [texto(0, 26, "Cambio en el fraude detenido con las variables nuevas", "heading")]
-    for t in (-.15, -.1, -.05, 0, .05, .1, .15):
-        if dominio[0] <= t <= dominio[1]:
-            el += [linea(x0 - 20, Y(t), x0 + (len(filas) - 1) * paso + ancho + 20, Y(t), NEGRO if abs(t) < 1e-9 else LINEA, 2 if t else 3),
-                   texto(x0 - 34, Y(t) + 7, "0" if abs(t) < 1e-9 else f"{t * 100:+.0f}%".replace("-", "−"), "axis", ancla="end")]
-    for i, (nombre, sub, rel, ic, color) in enumerate(filas):
+def espejismo(filas, dominio=(-.08, .08)):
+    """filas: (nombre, sub, rel, color), una columna cada una."""
+    Y = escala(dominio, (500, 100))
+    ancho, paso, x0 = 280, 460, 190
+    el = [texto(0, 30, "Cambio en el fraude detenido con las variables nuevas", "heading")]
+    for t in (-.05, 0, .05):
+        el += [linea(120, Y(t), x0 + (len(filas) - 1) * paso + ancho + 70, Y(t), NEGRO if t == 0 else LINEA, 3 if t == 0 else 2),
+               texto(104, Y(t) + 7, "0" if t == 0 else f"{t * 100:+.0f}%".replace("-", "−"), "axis", ancla="end")]
+    for i, (nombre, sub, rel, color) in enumerate(filas):
         x = x0 + i * paso
         xc = x + ancho / 2
-        alto = Y(0) - Y(rel)
-        el.append(rect(x, min(Y(rel), Y(0)), ancho, max(abs(alto), 4), color))
-        tope = rel
-        if ic is not None:
-            lo, hi = ic
-            el += [linea(xc, Y(lo), xc, Y(hi), NEGRO, 3), linea(xc - 14, Y(lo), xc + 14, Y(lo), NEGRO, 3),
-                   linea(xc - 14, Y(hi), xc + 14, Y(hi), NEGRO, 3)]
-            tope = hi if rel >= 0 else lo
-        ye = Y(max(tope, 0)) - 20 if rel >= 0 else Y(min(tope, 0)) + 46
-        el.append(texto(xc, ye, "0%" if round(rel * 100, 1) == 0 else pct(rel, d=1), "chart-big", color, "middle", halo=True))
-        for j, parte in enumerate(nombre.split("\n")):
-            el.append(texto(xc, 528 + j * 32, parte, "label-strong", NEGRO, "middle"))
-        el.append(texto(xc, 528 + len(nombre.split("\n")) * 32 + 2, sub, "micro", ancla="middle"))
-    xl = x0 + (len(filas) - 1) * paso + ancho - 150
-    el += [linea(xl, 640, xl, 664, NEGRO, 3), linea(xl - 10, 640, xl + 10, 640, NEGRO, 3), linea(xl - 10, 664, xl + 10, 664, NEGRO, 3),
-           texto(xl + 22, 660, "intervalo de 95%", "micro")]
-    return svg(1080, 680, "Cambio en el fraude detenido con las variables nuevas: donde se eligieron, en días apartados y en la prueba.", el)
+        el += [rect(x, min(Y(rel), Y(0)), ancho, abs(Y(0) - Y(rel)), color),
+               texto(xc, Y(rel) - 22 if rel >= 0 else Y(rel) + 64, pct(rel, d=1), "chart-big", color, "middle"),
+               texto(xc, 580, nombre, "label-strong", ancla="middle"), texto(xc, 616, sub, "micro", ancla="middle")]
+    return svg(1080, 630, "Cambio en el fraude detenido con las variables nuevas: donde se eligieron y en días que la búsqueda no vio.", el)
+
+
+# Despliegue: la cola de cada noche y el reentrenamiento de cada semana
+def operacion(pagos, cupo, margen):
+    w, h, hueco, y0 = 352, 130, 64, 40
+    xs = [i * (w + hueco) for i in range(4)]
+    cajas = [("Pagos del día", f"≈{pagos:,} cada noche", HIELO, NEGRO, GRIS),
+             ("El modelo puntúa", "probabilidad × monto", AZUL, "#fff", "#d6e7f5"),
+             (f"Cola de {cupo}", "mayor fraude esperado", AZUL_PALIDO, AZUL, GRIS),
+             ("Equipo de riesgo", "revisa y frena el fraude", HIELO, NEGRO, GRIS)]
+    el = []
+    for x, (titulo, sub, fondo, tinta, tinta_sub) in zip(xs, cajas):
+        el += [_caja(x, y0, w, h, fondo), texto(x + 32, y0 + 58, titulo, "label-strong", tinta), texto(x + 32, y0 + 98, sub, "label", tinta_sub)]
+    for x in xs[:-1]:
+        el.append(_flecha([(x + w + 10, y0 + h / 2), (x + w + hueco - 10, y0 + h / 2)]))
+    yl = y0 + h + 110
+    el += [_flecha([(xs[3] + w / 2, y0 + h + 10), (xs[3] + w / 2, yl), (xs[1] + w / 2, yl), (xs[1] + w / 2, y0 + h + 12)]),
+           texto((xs[1] + xs[3] + w) / 2, yl + 44, f"Cada semana: reentrenar con los pagos de más de {margen} días, que ya tienen etiqueta",
+                 "label", ancla="middle")]
+    yb, mitad = yl + 100, (xs[3] + w - 40) / 2
+    notas = [("Primer mes: piloto", NEGRO, ("Días al azar con la cola actual o la del modelo,", "para medir el efectivo recuperado.")),
+             ("Respaldo", NARANJA, ("Si el modelo queda dos semanas bajo la regla,", "se vuelve a ella."))]
+    for i, (titulo, color, renglones) in enumerate(notas):
+        x = i * (mitad + 40)
+        el += [_caja(x, yb, mitad, 170, HIELO if i == 0 else NARANJA_PALIDO), texto(x + 32, yb + 56, titulo, "label-strong", color)]
+        el += [texto(x + 32, yb + 100 + j * 34, r, "label", GRIS) for j, r in enumerate(renglones)]
+    return svg(xs[3] + w, yb + 180, "Despliegue: cada noche el modelo ordena la cola de 60; cada semana se reentrena.", el)
 
 
 # Capítulo 7 del curso · curva de aprendizaje con parada temprana

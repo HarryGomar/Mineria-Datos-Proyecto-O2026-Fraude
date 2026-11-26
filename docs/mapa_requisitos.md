@@ -2,14 +2,14 @@
 
 Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el reporte
 (`reporte/reporte.md`), el cuaderno ejecutado (`notebooks/que_pagos_revisar.ipynb`), la presentación
-(`presentacion/que-pagos-revisar.html`, láminas 1–15 y apéndice A1–A19) y el código (`src/revisar`, `scripts/`).
+(`presentacion/que-pagos-revisar.html`, láminas 1–15 y apéndice A1–A18) y el código (`src/revisar`, `scripts/`).
 
 ## Requisitos de la decisión y la evaluación
 
 | Requisito | Cómo se cumple | Reporte | Cuaderno | Láminas |
 |---|---|---|---|---|
 | Decisión: quién, cuándo, opciones y recurso | Revisión manual de pagos ya autorizados, 60 por día | 1.1 | 1 | 3 |
-| Dinero de la decisión | Dólares de fraude dentro de la cola; matriz de confusión en dólares | 1.2, 5.3 | 1, 5 | 4, A19 |
+| Dinero de la decisión | Dólares de fraude dentro de la cola; matriz de confusión en dólares | 1.2, 5.3 | 1, 5 | 3, 4 |
 | Mejora significativa fijada antes de la prueba | H1 ≥ 20%, H2 ≥ 10%, H3 > 0, con límite inferior del IC 95% > 0 (`docs/protocolo.md`) | 1.3, 5.2 | 1, 5 | 9, A4 |
 | Mismo presupuesto para todas las políticas | 60 revisiones por día; con costo por revisión, cada política elige su cupo en desarrollo | 1.1, 5.7 | 5 | 2, A3, A6 |
 | Práctica actual y reglas fuertes | Seis reglas de tasa histórica × monto; la mejor representa la práctica actual | 4.2, 4.3 | 4 | 8, A3 |
@@ -29,7 +29,7 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 
 | Fase | Reporte | Cuaderno | Láminas |
 |---|---|---|---|
-| Comprensión del negocio | 1 | 1 | 3, 4, 13, A6, A19 |
+| Comprensión del negocio | 1 | 1 | 3, 4, 13, A6 |
 | Comprensión de los datos | 2 | 2 | 5, A10, A11 |
 | Preparación de los datos | 3 | 3 | 6, A12–A14 |
 | Modelado | 4 | 4 | 7, 8, A15, A17 |
@@ -40,11 +40,11 @@ Dónde se cumple cada requisito del proyecto final en los cuatro entregables: el
 
 | Técnica | Reporte | Láminas |
 |---|---|---|
-| Matriz de confusión con costos y beneficios | 1.2, 5.3 | 4 |
-| Paradoja de la exactitud; precisión, recall y F1 | 5.4 | 10 |
+| Matriz de confusión con costos y beneficios | 1.2, 5.3 | 3, 4 |
+| Paradoja de la exactitud; precisión, recall y F1 | 5.4 | 10, A8 |
 | Curvas ROC y precisión–recall; AUC frente a dinero | 4.5, 5.4, 5.5 | 10, A8, A15 |
 | Ganancia acumulada y lift | 5.5 | 5, 11 |
-| Umbral de decisión con costos (p > C / LTV) y curva de beneficio | 1.2, 5.7 | 4, 13, A6, A19 |
+| Umbral de decisión con costos (p > C / LTV) y curva de beneficio | 1.2, 5.7 | 4, 13, A6 |
 | Calibración y error de Brier | 5.6 | A9 |
 | Ingeniería de variables (RFM, velocidad, novedad, entidades compartidas) | 3.1, 6.1 | 6, A12, A14 |
 | Matriz de diseño: cuantiles, faltantes, one-hot con mínimo, frecuencia | 3.2 | A12 |
