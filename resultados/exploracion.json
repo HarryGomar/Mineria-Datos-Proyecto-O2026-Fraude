@@ -20,6 +20,11 @@
   "top_10pct_pagos_por_monto": 0.5266315085667482,
   "top_1pct_fraudes_por_monto": 0.10250429982622383
  },
+ "extremos": {
+  "tope_iqr": 248.075,
+  "parte_pagos": 0.11442507634932045,
+  "parte_usd_fraude": 0.5622318443175348
+ },
  "producto": {
   "C": {
    "pagos": 50136,

@@ -100,6 +100,16 @@ umbral de probabilidad no se fija de antemano; lo determina el cupo.
 ![Figura 2](figuras/decision.svg)
 *Figura 2. Un día de prueba: cada pago según su probabilidad estimada y su monto. Los 60 revisados quedan sobre la diagonal de fraude esperado.*
 
+**Objetivos e impacto esperado.**
+
+- **Objetivo de negocio.** Detener más dólares de fraude con las mismas 60 revisiones diarias: el mismo equipo y
+  el mismo cupo; solo cambia qué pagos entran a la cola.
+- **Objetivo de minería de datos.** Estimar, con la información disponible al cierre del día, la probabilidad de
+  que cada pago sea fraude, y ordenar la cola por probabilidad × monto.
+- **Impacto esperado.** En el desarrollo (días 61 a 120), el modelo elegido llevó a la cola 447.9 mil dólares,
+  contra 274.8 mil de la mejor regla con las mismas revisiones. La meta mínima para la prueba se fijó en 20% más
+  que la regla en cada mes (sección 1.3).
+
 ### 1.2 El dinero de cada celda de la matriz de confusión
 
 | | El pago es fraude | El pago es legítimo |
@@ -185,7 +195,7 @@ más alta, 11.2%.
 **El cliente.** Vesta no publica un identificador de cliente. La columna `D1` registra los días desde el alta de
 la tarjeta; restada del día del pago da una fecha de alta fija. Tarjeta (`card1`) + dirección (`addr1`) + fecha de
 alta identifican 164,985 clientes, contra 12,251 valores de `card1`. El 77% de los fraudes ocurre en clientes con
-dos o más pagos. La tasa de fraude depende del tiempo desde el pago anterior del mismo cliente:
+dos o más fraudes. La tasa de fraude depende del tiempo desde el pago anterior del mismo cliente:
 
 | Tiempo desde el pago anterior | Pagos | Tasa de fraude |
 |---|---:|---:|
@@ -209,6 +219,19 @@ dos o más pagos. La tasa de fraude depende del tiempo desde el pago anterior de
 | 367 columnas opacas `C`, `D`, `V` sin fecha de cálculo documentada | Fuera del modelo final; solo diagnóstico. `D1` sirve para reconstruir al cliente |
 
 ## 3. Preparación de los datos
+
+**Limpieza: nulos y valores extremos.**
+
+| Problema | Decisión | Por qué |
+|---|---|---|
+| Numéricas faltantes | Mediana del entrenamiento más un indicador de faltante | El faltante es informativo (sección 2.3) |
+| Categóricas faltantes | Categoría propia | Que falte el dato también distingue pagos |
+| Montos extremos | Se conservan | Ahí está el dinero; la sección 5.8 repite la evaluación sin ellos |
+| Escala muy sesgada | Transformación por cuantiles a una normal | La necesitan la logística y la red; a los árboles no les afecta |
+| Categorías raras | Se agrupan las de menos de 50 pagos | Evita columnas de un solo caso |
+
+La regla usual de 1.5 × IQR marcaría como atípicos los pagos de más de 248 dólares: 11.4% de los pagos de los días
+1 a 120, que concentran 56% del fraude en dólares. Borrarlos quitaría lo que la cola debe atrapar.
 
 ### 3.1 Historial sin información futura
 
@@ -699,7 +722,7 @@ validación temporal con origen móvil, barra fijada antes y un bloque de confir
 - **Práctica actual desconocida.** Vesta no publica su regla de revisión; la representa la mejor de seis reglas
   de tasa histórica × monto.
 - **Etiqueta propagada.** El contracargo se propaga a los pagos posteriores de la misma cuenta. 77% de los
-  fraudes ocurre en clientes con dos o más pagos, así que parte del acierto proviene de reconocer cuentas ya
+  fraudes ocurre en clientes con dos o más fraudes, así que parte del acierto proviene de reconocer cuentas ya
   marcadas. Afecta a todas las políticas que usan historial.
 - **Seis meses de 2017–2018 con fechas relativas.** No hay estacionalidad anual ni fechas de calendario.
 - **Margen de 30 días.** Es un supuesto sobre cuándo madura la etiqueta. Con 45, 60 o 90 días la ventaja sobre
