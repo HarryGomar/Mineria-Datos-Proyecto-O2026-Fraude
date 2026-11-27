@@ -82,6 +82,28 @@ Los datos crudos y procesados no están en el repositorio. Por omisión van a `d
 y son los más lentos. Las figuras de la presentación salen de los resultados guardados; el cuaderno y el reporte
 reutilizan esas mismas figuras.
 
+### En otra máquina
+
+Los dólares del modelo cambian con la plataforma: con el mismo código, semilla y versiones, una Mac con Apple
+Silicon da 217.6 y 230.3 mil USD en la prueba, contra 211.4 y 226.7 publicados. El veredicto no cambia. Por eso
+`resultados/` guarda la corrida publicada y hay dos caminos:
+
+- **Regenerar la presentación y el reporte** desde `resultados/`, con `05_presentacion.py` y `09_reporte.py`:
+  tardan segundos y dan el mismo HTML. Los pasos 04, 04b, 04c y 08 necesitan además los puntajes por pago
+  (`datos/procesados`), que solo salen de correr 02, 03, 06 y 07.
+- **Volver a correr el experimento** (pasos 01 a 07) en otra carpeta, sin tocar `resultados/`:
+
+  ```text
+  export REVISAR_RESULTADOS=reejecucion/resultados REVISAR_PROCESADOS=reejecucion/procesados
+  ```
+
+  Sin esto la secuencia se detiene: `03_prueba.py` exige que `resultados/desarrollo_seleccion.json` conserve su
+  huella, que 02 cambia al reescribirlo, y `07_anexo_prueba.py` no corre si su salida ya existe. El veredicto
+  nuevo queda en `reejecucion/resultados/prueba.json`.
+
+En macOS, XGBoost necesita OpenMP (`brew install libomp`). `--pdf` usa Chrome, Edge o Chromium; si no está en una
+ruta usual, `REVISAR_NAVEGADOR` indica cuál.
+
 `docs/protocolo.md` registra las huellas SHA-256 de `datos.py`, `politicas.py`, `evaluacion.py`, `03_prueba.py`
 y `desarrollo_seleccion.json`; `03_prueba.py` no corre si alguno cambió. `docs/protocolo.md` y
 `docs/criterio_desarrollo.md` citan un estudio anterior con estos datos (`../docs/fraude-avanzado.md`) que no

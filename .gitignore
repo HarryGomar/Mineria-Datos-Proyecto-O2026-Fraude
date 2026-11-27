@@ -11,5 +11,8 @@ datos/procesados/
 *.parquet
 *.parcial
 
+# Experimento vuelto a correr en otra máquina (REVISAR_RESULTADOS, REVISAR_PROCESADOS)
+reejecucion/
+
 # Corridas rápidas de prueba de los scripts 06 y 07
 resultados/*_rapido.json
