@@ -85,6 +85,8 @@ reutilizan esas mismas figuras.
 Diagnósticos posteriores a la prueba, que no cambian el veredicto:
 
 - `scripts/10_semillas.py`: el modelo final con diez semillas. Las veinte corridas cumplen las tres hipótesis.
+- `scripts/11_margen.py`: la etiqueta tarda 45, 60 o 90 días en lugar de 30. La ventaja sobre la regla se
+  mantiene; la ventaja sobre la logística se reduce.
 
 ### En otra máquina
 

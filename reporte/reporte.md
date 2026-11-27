@@ -530,6 +530,24 @@ entrenamiento. Después de la prueba, el modelo se reentrenó con diez semillas 
 Los dólares publicados (211.4 y 226.7) caen dentro del rango. Otra máquina no los reproduce al centavo: con la
 semilla del protocolo da 217.6 y 230.3. La cifra exacta se mueve hasta 5% entre semillas; el veredicto, no.
 
+**Margen de la etiqueta.** El protocolo supone que la etiqueta madura en 30 días; Vesta la da por definitiva a los
+120. Con márgenes mayores, el modelo, la logística y la regla se reentrenaron en esa misma máquina
+(`scripts/11_margen.py`). Ventaja del modelo:
+
+| Margen | Entrena con los días (P1 / P2) | Regla, P1 | Logística, P1 | Regla, P2 | Logística, P2 |
+|---|---|---:|---:|---:|---:|
+| 30 días | 1–90 / 1–121 | +33.9% | +16.8% | +66.0% | +23.0% |
+| 45 días | 1–75 / 1–106 | +23.6% | +6.7% † | +64.0% | +25.2% |
+| 60 días | 1–60 / 1–91 | +28.5% | +11.8% | +49.9% | +15.3% |
+| 90 días | 1–30 / 1–61 | +23.7% | +5.6% † | +41.5% | +8.0% † |
+
+† El intervalo de 95% incluye el cero.
+
+Contra la regla, la ventaja nunca baja de 23.6% y su intervalo queda sobre cero. Contra la logística baja a 5.6% y
+8.0% con 90 días. De 30 a 90 días el modelo pierde 14.2% y 17.5% de sus dólares; la logística, 5.1% y 6.0%; la regla, 7.2% y
+3.2%. Dos matices: con seis meses de datos, más margen también es menos entrenamiento, y cada fila usa una sola
+semilla, que mueve la ventaja contra la logística unos 2 puntos.
+
 ### 5.9 Traza del dinero
 
 Cada dólar de fraude del mes cae en una sola categoría y las cuatro suman el fraude total (miles de dólares):
@@ -663,8 +681,10 @@ validación temporal con origen móvil, barra fijada antes y un bloque de confir
   fraudes ocurre en clientes con dos o más pagos, así que parte del acierto proviene de reconocer cuentas ya
   marcadas. Afecta a todas las políticas que usan historial.
 - **Seis meses de 2017–2018 con fechas relativas.** No hay estacionalidad anual ni fechas de calendario.
-- **Margen de 30 días.** Es un supuesto sobre cuándo madura la etiqueta; un margen mayor reduciría los datos de
-  entrenamiento de todas las políticas por igual.
+- **Margen de 30 días.** Es un supuesto sobre cuándo madura la etiqueta. Con 45, 60 o 90 días la ventaja sobre
+  la regla se mantiene, pero el modelo pierde más dinero que las otras políticas y su ventaja sobre la logística
+  baja hasta 5.6% (sección 5.8). Lo que XGBoost agrega a una logística depende de qué tan rápido llegan los
+  contracargos.
 - **Días con lectura previa.** Un estudio anterior con estos datos usó los días 145–182 con otra decisión. Ninguna
   elección de este proyecto los usó, y los días 121–144 se reportan aparte: la ventaja contra la regla ahí es
   +22.6% (IC +10.3% a +39.1%).
@@ -706,6 +726,7 @@ python scripts/05_presentacion.py --pdf
 python scripts/08_cuaderno.py         # cuaderno ejecutado
 python scripts/09_reporte.py --pdf    # este reporte
 python scripts/10_semillas.py         # robustez: diez semillas de XGBoost
+python scripts/11_margen.py           # robustez: la etiqueta tarda 45, 60 o 90 días
 ```
 
 - `docs/protocolo.md` guarda las hipótesis, la selección y las huellas SHA-256 de `datos.py`, `politicas.py`,
