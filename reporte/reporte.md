@@ -517,6 +517,19 @@ El fraude en dólares depende de pocos pagos grandes, así que la comparación s
 Contra la regla, la ventaja nunca baja de 20%. Contra la logística el margen es menor: el peor caso es +8.8%,
 sin los pagos más caros en P1.
 
+**Semilla del modelo.** El resultado publicado sale de una sola corrida, y el bootstrap remuestrea días, no el
+entrenamiento. Después de la prueba, el modelo se reentrenó con diez semillas en otra máquina
+(`scripts/10_semillas.py`). Las veinte corridas cumplen las tres hipótesis:
+
+| Diez semillas | P1 | P2 |
+|---|---|---|
+| Fraude en la cola (miles de USD) | 207.2 a 218.3 | 223.2 a 232.3 |
+| Ventaja contra la mejor regla | +27.4% a +34.3% | +60.9% a +67.5% |
+| Ventaja contra la mejor logística | +11.1% a +17.1% | +19.2% a +24.1% |
+
+Los dólares publicados (211.4 y 226.7) caen dentro del rango. Otra máquina no los reproduce al centavo: con la
+semilla del protocolo da 217.6 y 230.3. La cifra exacta se mueve hasta 5% entre semillas; el veredicto, no.
+
 ### 5.9 Traza del dinero
 
 Cada dólar de fraude del mes cae en una sola categoría y las cuatro suman el fraude total (miles de dólares):
@@ -692,6 +705,7 @@ python scripts/07_anexo_prueba.py     # anexo: lectura posterior de la prueba
 python scripts/05_presentacion.py --pdf
 python scripts/08_cuaderno.py         # cuaderno ejecutado
 python scripts/09_reporte.py --pdf    # este reporte
+python scripts/10_semillas.py         # robustez: diez semillas de XGBoost
 ```
 
 - `docs/protocolo.md` guarda las hipótesis, la selección y las huellas SHA-256 de `datos.py`, `politicas.py`,
@@ -702,6 +716,8 @@ python scripts/09_reporte.py --pdf    # este reporte
 - Los resultados de cada paso están en `resultados/`. Los puntajes por pago de la prueba y del anexo se guardan
   con los datos procesados, fuera del repositorio.
 - Las versiones de los paquetes están fijadas en `pyproject.toml` (Python 3.12).
+- Los dólares del modelo cambian con la plataforma (sección 5.8). `resultados/` guarda la corrida publicada; el
+  README explica cómo volver a correr el experimento en otra carpeta.
 
 ## Referencias
 

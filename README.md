@@ -82,6 +82,10 @@ Los datos crudos y procesados no están en el repositorio. Por omisión van a `d
 y son los más lentos. Las figuras de la presentación salen de los resultados guardados; el cuaderno y el reporte
 reutilizan esas mismas figuras.
 
+Diagnósticos posteriores a la prueba, que no cambian el veredicto:
+
+- `scripts/10_semillas.py`: el modelo final con diez semillas. Las veinte corridas cumplen las tres hipótesis.
+
 ### En otra máquina
 
 Los dólares del modelo cambian con la plataforma: con el mismo código, semilla y versiones, una Mac con Apple
