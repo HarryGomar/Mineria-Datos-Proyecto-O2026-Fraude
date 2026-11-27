@@ -56,7 +56,10 @@ def escribir(paginas: list[str], css_extra: str, guion: Path, titulo: str, salid
 
 
 def navegador() -> Path:
-    for nombre in ("chrome", "msedge", "chromium"):
+    """Chrome, Edge o Chromium: REVISAR_NAVEGADOR, luego el PATH, luego las carpetas usuales de Windows y macOS."""
+    if os.environ.get("REVISAR_NAVEGADOR"):
+        return Path(os.environ["REVISAR_NAVEGADOR"])
+    for nombre in ("chrome", "msedge", "chromium", "google-chrome", "google-chrome-stable", "chromium-browser", "microsoft-edge"):
         if which(nombre):
             return Path(which(nombre))
     for var in ("ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"):
@@ -64,7 +67,11 @@ def navegador() -> Path:
         for ruta in ("Google/Chrome/Application/chrome.exe", "Microsoft/Edge/Application/msedge.exe"):
             if raiz and (Path(raiz) / ruta).is_file():
                 return Path(raiz) / ruta
-    raise FileNotFoundError("No se encontró Chrome ni Edge para exportar el PDF.")
+    for raiz in (Path("/Applications"), Path.home() / "Applications"):
+        for app in ("Google Chrome", "Microsoft Edge", "Chromium"):
+            if (raiz / f"{app}.app" / "Contents" / "MacOS" / app).is_file():
+                return raiz / f"{app}.app" / "Contents" / "MacOS" / app
+    raise FileNotFoundError("No se encontró Chrome, Edge ni Chromium para exportar el PDF (REVISAR_NAVEGADOR indica otra ruta).")
 
 
 def imprimir_pdf(html: Path, pdf: Path) -> None:

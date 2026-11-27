@@ -74,8 +74,9 @@ si mejores variables agregaban dinero. Tres grupos nuevos subieron 6.1% en las v
 días de confirmación, que la búsqueda no usó, el modelo con esas variables llevó 5.3% menos que F3. F3 se
 mantiene y el veredicto no cambia (sección 6).
 
-**Recomendación.** Ordenar la cola con el modelo y medir el efectivo recuperado con un piloto de un mes que
-asigne días al azar a la cola actual o a la del modelo.
+**Recomendación.** Ordenar la cola con el modelo y medir el efectivo recuperado con un piloto pareado de dos a
+cuatro semanas: cada día se arman la cola actual y la del modelo, y las 60 revisiones se reparten entre las dos.
+Asignar días al azar a una cola o a la otra durante un mes detectaría la ventaja solo 38% de las veces (sección 7).
 
 ![Figura 1](figuras/resultado.svg)
 *Figura 1. Fraude en la cola por mes de prueba: mejor regla contra modelo. Cada marca equivale a 5 mil USD.*
@@ -98,6 +99,16 @@ umbral de probabilidad no se fija de antemano; lo determina el cupo.
 
 ![Figura 2](figuras/decision.svg)
 *Figura 2. Un día de prueba: cada pago según su probabilidad estimada y su monto. Los 60 revisados quedan sobre la diagonal de fraude esperado.*
+
+**Objetivos e impacto esperado.**
+
+- **Objetivo de negocio.** Detener más dólares de fraude con las mismas 60 revisiones diarias: el mismo equipo y
+  el mismo cupo; solo cambia qué pagos entran a la cola.
+- **Objetivo de minería de datos.** Estimar, con la información disponible al cierre del día, la probabilidad de
+  que cada pago sea fraude, y ordenar la cola por probabilidad × monto.
+- **Impacto esperado.** En el desarrollo (días 61 a 120), el modelo elegido llevó a la cola 447.9 mil dólares,
+  contra 274.8 mil de la mejor regla con las mismas revisiones. La meta mínima para la prueba se fijó en 20% más
+  que la regla en cada mes (sección 1.3).
 
 ### 1.2 El dinero de cada celda de la matriz de confusión
 
@@ -184,7 +195,7 @@ más alta, 11.2%.
 **El cliente.** Vesta no publica un identificador de cliente. La columna `D1` registra los días desde el alta de
 la tarjeta; restada del día del pago da una fecha de alta fija. Tarjeta (`card1`) + dirección (`addr1`) + fecha de
 alta identifican 164,985 clientes, contra 12,251 valores de `card1`. El 77% de los fraudes ocurre en clientes con
-dos o más pagos. La tasa de fraude depende del tiempo desde el pago anterior del mismo cliente:
+dos o más fraudes. La tasa de fraude depende del tiempo desde el pago anterior del mismo cliente:
 
 | Tiempo desde el pago anterior | Pagos | Tasa de fraude |
 |---|---:|---:|
@@ -208,6 +219,19 @@ dos o más pagos. La tasa de fraude depende del tiempo desde el pago anterior de
 | 367 columnas opacas `C`, `D`, `V` sin fecha de cálculo documentada | Fuera del modelo final; solo diagnóstico. `D1` sirve para reconstruir al cliente |
 
 ## 3. Preparación de los datos
+
+**Limpieza: nulos y valores extremos.**
+
+| Problema | Decisión | Por qué |
+|---|---|---|
+| Numéricas faltantes | Mediana del entrenamiento más un indicador de faltante | El faltante es informativo (sección 2.3) |
+| Categóricas faltantes | Categoría propia | Que falte el dato también distingue pagos |
+| Montos extremos | Se conservan | Ahí está el dinero; la sección 5.8 repite la evaluación sin ellos |
+| Escala muy sesgada | Transformación por cuantiles a una normal | La necesitan la logística y la red; a los árboles no les afecta |
+| Categorías raras | Se agrupan las de menos de 50 pagos | Evita columnas de un solo caso |
+
+La regla usual de 1.5 × IQR marcaría como atípicos los pagos de más de 248 dólares: 11.4% de los pagos de los días
+1 a 120, que concentran 56% del fraude en dólares. Borrarlos quitaría lo que la cola debe atrapar.
 
 ### 3.1 Historial sin información futura
 
@@ -517,6 +541,37 @@ El fraude en dólares depende de pocos pagos grandes, así que la comparación s
 Contra la regla, la ventaja nunca baja de 20%. Contra la logística el margen es menor: el peor caso es +8.8%,
 sin los pagos más caros en P1.
 
+**Semilla del modelo.** El resultado publicado sale de una sola corrida, y el bootstrap remuestrea días, no el
+entrenamiento. Después de la prueba, el modelo se reentrenó con diez semillas en otra máquina
+(`scripts/10_semillas.py`). Las veinte corridas cumplen las tres hipótesis:
+
+| Diez semillas | P1 | P2 |
+|---|---|---|
+| Fraude en la cola (miles de USD) | 207.2 a 218.3 | 223.2 a 232.3 |
+| Ventaja contra la mejor regla | +27.4% a +34.3% | +60.9% a +67.5% |
+| Ventaja contra la mejor logística | +11.1% a +17.1% | +19.2% a +24.1% |
+
+Los dólares publicados (211.4 y 226.7) caen dentro del rango. Otra máquina no los reproduce al centavo: con la
+semilla del protocolo da 217.6 y 230.3. La cifra exacta se mueve hasta 5% entre semillas; el veredicto, no.
+
+**Margen de la etiqueta.** El protocolo supone que la etiqueta madura en 30 días; Vesta la da por definitiva a los
+120. Con márgenes mayores, el modelo, la logística y la regla se reentrenaron en esa misma máquina
+(`scripts/11_margen.py`). Ventaja del modelo:
+
+| Margen | Entrena con los días (P1 / P2) | Regla, P1 | Logística, P1 | Regla, P2 | Logística, P2 |
+|---|---|---:|---:|---:|---:|
+| 30 días | 1–90 / 1–121 | +33.9% | +16.8% | +66.0% | +23.0% |
+| 45 días | 1–75 / 1–106 | +23.6% | +6.7% † | +64.0% | +25.2% |
+| 60 días | 1–60 / 1–91 | +28.5% | +11.8% | +49.9% | +15.3% |
+| 90 días | 1–30 / 1–61 | +23.7% | +5.6% † | +41.5% | +8.0% † |
+
+† El intervalo de 95% incluye el cero.
+
+Contra la regla, la ventaja nunca baja de 23.6% y su intervalo queda sobre cero. Contra la logística baja a 5.6% y
+8.0% con 90 días. De 30 a 90 días el modelo pierde 14.2% y 17.5% de sus dólares; la logística, 5.1% y 6.0%; la regla, 7.2% y
+3.2%. Dos matices: con seis meses de datos, más margen también es menos entrenamiento, y cada fila usa una sola
+semilla, que mueve la ventaja contra la logística unos 2 puntos.
+
 ### 5.9 Traza del dinero
 
 Cada dólar de fraude del mes cae en una sola categoría y las cuatro suman el fraude total (miles de dólares):
@@ -630,9 +685,29 @@ evaluar cambios futuros al modelo.
 |---|---|---|
 | Operación | Cada noche | Se puntúan los pagos del día y los 60 con mayor fraude esperado pasan a la cola. La decisión sobre cada pago sigue siendo del equipo |
 | Reentrenamiento | Cada semana | Con los pagos de más de 30 días, que ya tienen etiqueta |
-| Piloto | Primer mes | Los días se asignan al azar a la cola actual o a la del modelo, para medir el efectivo recuperado |
+| Piloto | Primeras dos a cuatro semanas | Cada día se arman las dos colas, la actual y la del modelo, y las 60 revisiones se reparten 30 y 30. La comparación es dentro del mismo día y mide el efectivo recuperado |
 | Monitoreo | Cada semana | Dólares por revisión, precisión, monto medio de la cola y mezcla de productos |
-| Respaldo | Si el modelo falla | Si durante dos semanas queda por debajo de la regla, se vuelve a la tabla por segmento |
+| Control | Después del piloto | Unos pocos lugares de la cola (por ejemplo, 5 de 60) siguen saliendo de la regla |
+| Respaldo | Si el modelo falla | Si durante dos semanas los lugares de control rinden más que los primeros lugares del modelo, en igual número, se vuelve a la tabla por segmento |
+
+**Piloto pareado.** El fraude en la cola cambia mucho de un día a otro: la desviación diaria (3.7 mil dólares) es
+mayor que la ventaja diaria del modelo (2.2 mil). Con los resultados diarios de la prueba (`scripts/12_piloto.py`),
+un piloto que asigna días al azar a una cola o a la otra rara vez distingue la ventaja en un mes:
+
+| Diseño del piloto | Duración | Detecta la ventaja | Sale ganando la regla |
+|---|---|---:|---:|
+| Días al azar: cola actual o cola del modelo | 30 días | 38% | 5% |
+| | 60 días | 64% | 1% |
+| | 90 días | 81% | menos de 1% |
+| Pareado: las dos colas el mismo día | 14 días | 96% | 0% |
+| | 30 días | 100% | 0% |
+
+Detectar la ventaja es que el modelo salga mejor con p < 0.05. La simulación pareada compara las dos colas completas
+de cada día; con 30 lugares por cola la ventaja medida es mayor (+80.6% y +89.8%, sección 5.8).
+
+**Control permanente.** Lo que la regla habría atrapado en un pago que nadie revisó se sabe cuando llega el
+contracargo, 30 días después. Sin lugares de la regla en la cola, una caída del modelo por debajo de la regla se
+vería con un mes de retraso.
 
 **Cupo.** Si el equipo conoce el costo de una revisión, el cupo puede salir de la curva de beneficio (sección
 5.7) en lugar de fijarse en 60; el modelo deja más neto en todos los costos evaluados.
@@ -647,11 +722,13 @@ validación temporal con origen móvil, barra fijada antes y un bloque de confir
 - **Práctica actual desconocida.** Vesta no publica su regla de revisión; la representa la mejor de seis reglas
   de tasa histórica × monto.
 - **Etiqueta propagada.** El contracargo se propaga a los pagos posteriores de la misma cuenta. 77% de los
-  fraudes ocurre en clientes con dos o más pagos, así que parte del acierto proviene de reconocer cuentas ya
+  fraudes ocurre en clientes con dos o más fraudes, así que parte del acierto proviene de reconocer cuentas ya
   marcadas. Afecta a todas las políticas que usan historial.
 - **Seis meses de 2017–2018 con fechas relativas.** No hay estacionalidad anual ni fechas de calendario.
-- **Margen de 30 días.** Es un supuesto sobre cuándo madura la etiqueta; un margen mayor reduciría los datos de
-  entrenamiento de todas las políticas por igual.
+- **Margen de 30 días.** Es un supuesto sobre cuándo madura la etiqueta. Con 45, 60 o 90 días la ventaja sobre
+  la regla se mantiene, pero el modelo pierde más dinero que las otras políticas y su ventaja sobre la logística
+  baja hasta 5.6% (sección 5.8). Lo que XGBoost agrega a una logística depende de qué tan rápido llegan los
+  contracargos.
 - **Días con lectura previa.** Un estudio anterior con estos datos usó los días 145–182 con otra decisión. Ninguna
   elección de este proyecto los usó, y los días 121–144 se reportan aparte: la ventaja contra la regla ahí es
   +22.6% (IC +10.3% a +39.1%).
@@ -692,6 +769,9 @@ python scripts/07_anexo_prueba.py     # anexo: lectura posterior de la prueba
 python scripts/05_presentacion.py --pdf
 python scripts/08_cuaderno.py         # cuaderno ejecutado
 python scripts/09_reporte.py --pdf    # este reporte
+python scripts/10_semillas.py         # robustez: diez semillas de XGBoost
+python scripts/11_margen.py           # robustez: la etiqueta tarda 45, 60 o 90 días
+python scripts/12_piloto.py           # despliegue: potencia del piloto
 ```
 
 - `docs/protocolo.md` guarda las hipótesis, la selección y las huellas SHA-256 de `datos.py`, `politicas.py`,
@@ -702,6 +782,8 @@ python scripts/09_reporte.py --pdf    # este reporte
 - Los resultados de cada paso están en `resultados/`. Los puntajes por pago de la prueba y del anexo se guardan
   con los datos procesados, fuera del repositorio.
 - Las versiones de los paquetes están fijadas en `pyproject.toml` (Python 3.12).
+- Los dólares del modelo cambian con la plataforma (sección 5.8). `resultados/` guarda la corrida publicada; el
+  README explica cómo volver a correr el experimento en otra carpeta.
 
 ## Referencias
 

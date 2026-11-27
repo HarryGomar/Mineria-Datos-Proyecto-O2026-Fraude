@@ -35,6 +35,10 @@ orden = np.argsort(-m, kind="stable")
 acum = np.cumsum(fm[orden]) / fm.sum()
 X["concentracion"] = {f"top_{p}pct_pagos_por_monto": float(acum[int(len(m) * p / 100) - 1]) for p in (1, 5, 10)}
 X["concentracion"]["top_1pct_fraudes_por_monto"] = float(np.sort(m[y == 1])[::-1][:max(1, int(y.sum() / 100))].sum() / fm.sum())
+# La regla usual de valores atípicos (Q3 + 1.5 IQR) marcaría los pagos donde está el dinero: por eso no se eliminan
+q1, q3 = np.quantile(m, [.25, .75])
+tope = q3 + 1.5 * (q3 - q1)
+X["extremos"] = dict(tope_iqr=float(tope), parte_pagos=float((m > tope).mean()), parte_usd_fraude=float(fm[m > tope].sum() / fm.sum()))
 
 prod = pd.DataFrame({"p": df["ProductCD"], "y": y, "fm": fm}).groupby("p").agg(pagos=("y", "size"), tasa=("y", "mean"), usd_fraude=("fm", "sum"))
 prod["parte_pagos"] = prod["pagos"] / len(df)
