@@ -33,7 +33,7 @@ así que el modelo congelado se mantiene.
 | Entregable | Archivo |
 |---|---|
 | Reporte | [`reporte/reporte.md`](reporte/reporte.md) (también [`reporte.pdf`](reporte/reporte.pdf) y `reporte.html`) |
-| Cuaderno ejecutado | [`notebooks/que_pagos_revisar.ipynb`](notebooks/que_pagos_revisar.ipynb) |
+| Cuaderno ejecutado (código del proyecto, fase por fase de CRISP-DM) | [`notebooks/que_pagos_revisar.ipynb`](notebooks/que_pagos_revisar.ipynb) |
 | Presentación | [`presentacion/que-pagos-revisar.pdf`](presentacion/que-pagos-revisar.pdf) y `que-pagos-revisar.html` |
 | Guion de la presentación (10–15 min) | [`presentacion/guion.md`](presentacion/guion.md) |
 | Mapa de requisitos | [`docs/mapa_requisitos.md`](docs/mapa_requisitos.md) |
@@ -72,7 +72,7 @@ python scripts/04c_curvas_curso.py
 python scripts/06_variables.py        # anexo: búsqueda de variables con validación temporal
 python scripts/07_anexo_prueba.py     # anexo: lectura posterior de la prueba
 python scripts/05_presentacion.py --pdf
-python scripts/08_cuaderno.py
+python scripts/08_cuaderno.py         # cuaderno: CRISP-DM fase por fase; reentrena el modelo final y recalcula la prueba
 python scripts/09_reporte.py --pdf
 ```
 

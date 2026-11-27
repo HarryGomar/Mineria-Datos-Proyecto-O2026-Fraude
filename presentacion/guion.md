@@ -23,9 +23,9 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 
 ## 4 · Se revisan los 60 pagos con mayor fraude esperado
 
-**Ver.** Los pagos del día 166 por probabilidad estimada y monto, en escala logarítmica; la línea marca 44 USD de fraude esperado y hay dos fraudes reales señalados.
+**Ver.** Los pagos del día 166 por probabilidad estimada y monto, en escala logarítmica; la línea marca 44 USD de fraude esperado y hay dos fraudes reales señalados. Abajo a la derecha, el fraude detenido en los dos meses de prueba al ordenar solo por probabilidad y al ordenar por fraude esperado.
 
-**Decir.** Revisar conviene cuando la probabilidad por el monto supera el costo de revisar: es la regla del curso, p mayor o igual a C entre LTV, con el monto como valor en riesgo. Con un cupo fijo, se revisan los 60 pagos con mayor probabilidad por monto. Cada punto es un pago de un día, y los 60 revisados quedan arriba de la línea. Dos fraudes reales: uno de 554 dólares con 10% de probabilidad vale 56 dólares esperados y se revisa. Otro de 30 dólares con 80% es mucho más sospechoso, pero vale 24 y pasa. Un pago caro entra a la cola con menos probabilidad que uno barato.
+**Decir.** Revisar conviene cuando la probabilidad por el monto supera el costo de revisar: es la regla del curso, p mayor o igual a C entre LTV, con el monto como valor en riesgo. Con un cupo fijo, se revisan los 60 pagos con mayor probabilidad por monto. Cada punto es un pago de un día, y los 60 revisados quedan arriba de la línea. Dos fraudes reales: uno de 554 dólares con 10% de probabilidad vale 56 dólares esperados y se revisa. Otro de 30 dólares con 80% es mucho más sospechoso, pero vale 24 y pasa. Por eso abajo a la derecha quedan fraudes con probabilidad alta: son pagos chicos. Cambiarlos por pagos caros vale la pena: en los dos meses de prueba, ordenar solo por probabilidad detiene 231 mil dólares; ordenar por fraude esperado, 438 mil, casi el doble. Y las probabilidades son confiables: cuando el modelo dice 20%, cerca de 20% resulta fraude.
 
 ## 5 · Ninguna variable separa sola el fraude
 
@@ -212,3 +212,9 @@ lámina dice arriba del título en qué fase de CRISP-DM está. Cada bloque indi
 **Ver.** Apéndice. Ventanas de búsqueda, días de confirmación y prueba, con su entrenamiento y margen.
 
 **Decir.** Tres ventanas de quince días eligen variables; los días 106 a 120 confirman; la prueba se lee una sola vez. Es el diseño detrás de la lámina 14.
+
+## 36 · La ventaja se repite en los cuatro pliegues
+
+**Ver.** Apéndice. Ventaja del modelo en los cuatro bloques en el tiempo, los dos que lo eligieron y los dos de prueba, con su parte del oráculo y su lugar entre las políticas elegibles.
+
+**Decir.** Si preguntan por sobreajuste: los dos bloques de desarrollo y los dos meses de prueba forman una validación cruzada en el tiempo, y cada uno entrena solo con días anteriores. El modelo gana a la regla, a la logística y al orden por probabilidad en los cuatro. Su parte del oráculo sube de 41 y 46% en los bloques que lo eligieron a 49 y 52% en la prueba; si la elección estuviera sobreajustada, caería. Solo el ensamble con el bosque le gana en dos bloques, por menos de 4%, y perdió por mucho en el primero.
