@@ -1,0 +1,39 @@
+{
+ "dias_prueba": 62,
+ "simulaciones": 10000,
+ "alfa": 0.05,
+ "usd_por_dia": {
+  "modelo": 7066.574983870968,
+  "regla": 4859.656419354839,
+  "diferencia": 2206.918564516129
+ },
+ "desviacion": {
+  "modelo": 3678.560042024563,
+  "regla": 3656.080764486938,
+  "diferencia": 2278.591621682523
+ },
+ "al_azar": {
+  "30": {
+   "potencia": 0.3777,
+   "sale_al_reves": 0.0499
+  },
+  "60": {
+   "potencia": 0.6379,
+   "sale_al_reves": 0.0115
+  },
+  "90": {
+   "potencia": 0.8071,
+   "sale_al_reves": 0.0025
+  }
+ },
+ "pareado": {
+  "14": {
+   "potencia": 0.9556,
+   "sale_al_reves": 0.0
+  },
+  "30": {
+   "potencia": 0.9999,
+   "sale_al_reves": 0.0
+  }
+ }
+}

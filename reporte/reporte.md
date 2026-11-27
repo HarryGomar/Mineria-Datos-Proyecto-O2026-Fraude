@@ -74,8 +74,9 @@ si mejores variables agregaban dinero. Tres grupos nuevos subieron 6.1% en las v
 días de confirmación, que la búsqueda no usó, el modelo con esas variables llevó 5.3% menos que F3. F3 se
 mantiene y el veredicto no cambia (sección 6).
 
-**Recomendación.** Ordenar la cola con el modelo y medir el efectivo recuperado con un piloto de un mes que
-asigne días al azar a la cola actual o a la del modelo.
+**Recomendación.** Ordenar la cola con el modelo y medir el efectivo recuperado con un piloto pareado de dos a
+cuatro semanas: cada día se arman la cola actual y la del modelo, y las 60 revisiones se reparten entre las dos.
+Asignar días al azar a una cola o a la otra durante un mes detectaría la ventaja solo 38% de las veces (sección 7).
 
 ![Figura 1](figuras/resultado.svg)
 *Figura 1. Fraude en la cola por mes de prueba: mejor regla contra modelo. Cada marca equivale a 5 mil USD.*
@@ -661,9 +662,29 @@ evaluar cambios futuros al modelo.
 |---|---|---|
 | Operación | Cada noche | Se puntúan los pagos del día y los 60 con mayor fraude esperado pasan a la cola. La decisión sobre cada pago sigue siendo del equipo |
 | Reentrenamiento | Cada semana | Con los pagos de más de 30 días, que ya tienen etiqueta |
-| Piloto | Primer mes | Los días se asignan al azar a la cola actual o a la del modelo, para medir el efectivo recuperado |
+| Piloto | Primeras dos a cuatro semanas | Cada día se arman las dos colas, la actual y la del modelo, y las 60 revisiones se reparten 30 y 30. La comparación es dentro del mismo día y mide el efectivo recuperado |
 | Monitoreo | Cada semana | Dólares por revisión, precisión, monto medio de la cola y mezcla de productos |
-| Respaldo | Si el modelo falla | Si durante dos semanas queda por debajo de la regla, se vuelve a la tabla por segmento |
+| Control | Después del piloto | Unos pocos lugares de la cola (por ejemplo, 5 de 60) siguen saliendo de la regla |
+| Respaldo | Si el modelo falla | Si durante dos semanas los lugares de control rinden más que los primeros lugares del modelo, en igual número, se vuelve a la tabla por segmento |
+
+**Piloto pareado.** El fraude en la cola cambia mucho de un día a otro: la desviación diaria (3.7 mil dólares) es
+mayor que la ventaja diaria del modelo (2.2 mil). Con los resultados diarios de la prueba (`scripts/12_piloto.py`),
+un piloto que asigna días al azar a una cola o a la otra rara vez distingue la ventaja en un mes:
+
+| Diseño del piloto | Duración | Detecta la ventaja | Sale ganando la regla |
+|---|---|---:|---:|
+| Días al azar: cola actual o cola del modelo | 30 días | 38% | 5% |
+| | 60 días | 64% | 1% |
+| | 90 días | 81% | menos de 1% |
+| Pareado: las dos colas el mismo día | 14 días | 96% | 0% |
+| | 30 días | 100% | 0% |
+
+Detectar la ventaja es que el modelo salga mejor con p < 0.05. La simulación pareada compara las dos colas completas
+de cada día; con 30 lugares por cola la ventaja medida es mayor (+80.6% y +89.8%, sección 5.8).
+
+**Control permanente.** Lo que la regla habría atrapado en un pago que nadie revisó se sabe cuando llega el
+contracargo, 30 días después. Sin lugares de la regla en la cola, una caída del modelo por debajo de la regla se
+vería con un mes de retraso.
 
 **Cupo.** Si el equipo conoce el costo de una revisión, el cupo puede salir de la curva de beneficio (sección
 5.7) en lugar de fijarse en 60; el modelo deja más neto en todos los costos evaluados.
@@ -727,6 +748,7 @@ python scripts/08_cuaderno.py         # cuaderno ejecutado
 python scripts/09_reporte.py --pdf    # este reporte
 python scripts/10_semillas.py         # robustez: diez semillas de XGBoost
 python scripts/11_margen.py           # robustez: la etiqueta tarda 45, 60 o 90 días
+python scripts/12_piloto.py           # despliegue: potencia del piloto
 ```
 
 - `docs/protocolo.md` guarda las hipótesis, la selección y las huellas SHA-256 de `datos.py`, `politicas.py`,
